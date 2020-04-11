@@ -15,6 +15,12 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+bootRun {
+    if (project.hasProperty('args')) {
+        args project.args.split(',')
+    }
+}
+
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
     compile 'com.google.api-client:google-api-client:1.23.0'

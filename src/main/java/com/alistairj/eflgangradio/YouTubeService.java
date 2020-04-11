@@ -5,7 +5,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.YouTubeRequestInitializer;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
@@ -24,12 +23,16 @@ public class YouTubeService {
 
   private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
 
-  private static final String API_KEY = "AIzaSyCc8mWKb0msemsnpfA3rBsxeo2k7xti_9Y";
+  private static String API_KEY = null;
 
   private static final String APPLICATION_NAME = "EfferalGang Radio Live";
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
   private static YouTube service = null;
+
+  public static void configureAPIKey(String apiKey) {
+    API_KEY = apiKey;
+  }
 
   /**
    * Build and return an authorized API client service.
@@ -44,7 +47,7 @@ public class YouTubeService {
 
       service = new YouTube.Builder(httpTransport, JSON_FACTORY, null)
           .setApplicationName(APPLICATION_NAME)
-          .setYouTubeRequestInitializer(new YouTubeRequestInitializer(API_KEY))
+          //.setYouTubeRequestInitializer(new YouTubeRequestInitializer(API_KEY))
           .build();
     }
 
@@ -53,7 +56,6 @@ public class YouTubeService {
 
   /**
    * Fetch current live show.
-   *
    * TODO: Cache this
    *
    * @returns id of current live show.
@@ -73,7 +75,7 @@ public class YouTubeService {
         .setEventType("live")
         .execute();
 
-    logger.info("response: {}, response.getItems().size()", response);
+    logger.info("response: {}", response);
 
     String videoId = null;
 
