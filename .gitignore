@@ -1,0 +1,17 @@
+# Intellij
+\.idea/workspace\.xml
+\.idea/uiDesigner\.xml
+\.idea/libraries
+\.idea/dbnavigator\.xml
+\.idea/\.name
+
+#IntelliJ gradle integration
+**/.idea/modules
+\.idea/modules\.xml
+\.idea/gradle\.xml
+
+
+# Gradle
+\.gradle
+
+:q
