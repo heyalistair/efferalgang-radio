@@ -1,9 +1,9 @@
 # EfferalGang radio live
 
-Gets the currently playing show from the EfferalFang YouTube channel.
+Gets the currently playing show from the EfferalGang YouTube channel.
 
 # Run
 
 ```
-gradle bootRun --args='API_KEY=<YOUR_API_KEY>'
+gradle bootRun -Pargs='API_KEY=<YOUR API KEY>,FRONTEND_HOST=http://localhost:3000'
 ```
