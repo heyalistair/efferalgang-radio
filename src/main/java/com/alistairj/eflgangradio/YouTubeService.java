@@ -5,6 +5,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.YouTubeRequestInitializer;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class YouTubeService {
 
       service = new YouTube.Builder(httpTransport, JSON_FACTORY, null)
           .setApplicationName(APPLICATION_NAME)
-          //.setYouTubeRequestInitializer(new YouTubeRequestInitializer(API_KEY))
+          .setYouTubeRequestInitializer(new YouTubeRequestInitializer(API_KEY))
           .build();
     }
 
@@ -64,6 +65,7 @@ public class YouTubeService {
 
     YouTube youtubeService = getService();
     // Define and execute the API request
+
     YouTube.Search.List request = youtubeService.search()
         .list("snippet");
     SearchListResponse response = request.setEventType("live")
