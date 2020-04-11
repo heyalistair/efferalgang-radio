@@ -13,5 +13,5 @@
 
 # Gradle
 \.gradle
+build/
 
-:q
