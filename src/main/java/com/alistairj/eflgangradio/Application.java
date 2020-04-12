@@ -1,6 +1,5 @@
 package com.alistairj.eflgangradio;
 
-import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -10,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,23 +27,28 @@ public class Application {
   private static List<String> cachedShows = null;
   private static Random random = new Random();
 
-  private static String liveShow = null;
+  private static String cachedliveShow = null;
 
   private static String getRandomCachedShow() {
-    int chosenIndex = random.nextInt(cachedShows.size() - 1);
-    return cachedShows.get(chosenIndex);
+    if (cachedShows != null && cachedShows.isEmpty() == false) {
+      int chosenIndex = random.nextInt(cachedShows.size() - 1);
+      return cachedShows.get(chosenIndex);
+    } else {
+      return "";
+    }
   }
 
   @RequestMapping("/live")
   public String getLiveShow(HttpServletResponse response) throws GeneralSecurityException, IOException {
 
-    String videoId = YouTubeService.getCurrentLiveShow();
-
+    String videoId = null;
     boolean isLive = true;
 
-    if (videoId == null) {
+    if (cachedliveShow == null) {
       isLive = false;
       videoId = getRandomCachedShow();
+    } else {
+      videoId = cachedliveShow;
     }
 
     String jsonResponse = String.format("{\"video_id\":\"%s\", \"is_live\":%s}", videoId, isLive);
@@ -52,13 +57,18 @@ public class Application {
     return jsonResponse;
   }
 
+  @Scheduled(cron = "45 0,1 * ? * *")
+  public void scheduleTaskUsingCronExpression() throws GeneralSecurityException, IOException {
+    cachedliveShow = YouTubeService.getCurrentLiveShow();
+  }
+
   /**
    * Run the application.
    *
    * @param args YouTube API key
    */
   public static void main(String[] args) throws GeneralSecurityException, IOException {
-    for (String s: args) {
+    for (String s : args) {
       logger.info(s);
     }
 
@@ -78,6 +88,7 @@ public class Application {
     frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
     cachedShows = YouTubeService.getCompletedShows();
+    cachedliveShow = YouTubeService.getCurrentLiveShow();
 
     SpringApplication.run(Application.class, args);
   }
