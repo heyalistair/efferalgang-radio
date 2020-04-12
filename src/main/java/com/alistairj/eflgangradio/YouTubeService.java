@@ -10,6 +10,9 @@ import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +61,6 @@ public class YouTubeService {
   /**
    * Fetch current live show.
    * TODO: Cache this
-   *
-   * @returns id of current live show.
    */
   public static String getCurrentLiveShow() throws GeneralSecurityException, IOException {
 
@@ -67,8 +68,8 @@ public class YouTubeService {
     // Define and execute the API request
 
     YouTube.Search.List request = youtubeService.search()
-        .list("snippet");
-    SearchListResponse response = request.setEventType("live")
+        .list("id");
+    SearchListResponse response = request
         .setMaxResults(1L)
         .setPart("id")
         .setOrder("date")
@@ -76,8 +77,6 @@ public class YouTubeService {
         .setType("video")
         .setEventType("live")
         .execute();
-
-    logger.info("response: {}", response);
 
     String videoId = null;
 
@@ -87,6 +86,41 @@ public class YouTubeService {
       videoId = item.getId().getVideoId();
     }
 
+    logger.info("fetched current live show: {}", videoId);
+
     return videoId;
+  }
+
+  /**
+   * Fetch random completed show.
+   */
+  public static List<String> getCompletedShows() throws GeneralSecurityException, IOException {
+
+    YouTube youtubeService = getService();
+
+    // Define and execute the API request
+    YouTube.Search.List request = youtubeService.search()
+        .list("id");
+    SearchListResponse response = request
+        .setMaxResults(50L)
+        .setPart("id")
+        .setOrder("date")
+        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setType("video")
+        .setEventType("completed")
+        .execute();
+
+    logger.info("response: {}", response);
+
+    List<String> videoIds = new ArrayList<>();
+    Random r = new Random();
+
+    for (SearchResult item : response.getItems()) {
+      videoIds.add(item.getId().getVideoId());
+    }
+
+    logger.info("Fetched {} past shows", videoIds.size());
+
+    return videoIds;
   }
 }

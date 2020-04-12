@@ -1,7 +1,10 @@
 package com.alistairj.eflgangradio;
 
+import com.google.api.services.youtube.model.SearchResult;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
+import java.util.Random;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,12 +24,30 @@ public class Application {
 
   private static String frontendUrl = "";
 
+  private static List<String> cachedShows = null;
+  private static Random random = new Random();
+
+  private static String liveShow = null;
+
+  private static String getRandomCachedShow() {
+    int chosenIndex = random.nextInt(cachedShows.size() - 1);
+    return cachedShows.get(chosenIndex);
+  }
+
   @RequestMapping("/live")
   public String getLiveShow(HttpServletResponse response) throws GeneralSecurityException, IOException {
 
     String videoId = YouTubeService.getCurrentLiveShow();
 
-    String jsonResponse = String.format("{\"video_id\":\"%s\"}", videoId);
+    boolean isLive = true;
+
+    if (videoId == null) {
+      isLive = false;
+      videoId = getRandomCachedShow();
+    }
+
+    String jsonResponse = String.format("{\"video_id\":\"%s\", \"is_live\":%s}", videoId, isLive);
+
     response.addHeader("Access-Control-Allow-Origin", frontendUrl);
     return jsonResponse;
   }
@@ -36,7 +57,7 @@ public class Application {
    *
    * @param args YouTube API key
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws GeneralSecurityException, IOException {
     for (String s: args) {
       logger.info(s);
     }
@@ -52,10 +73,11 @@ public class Application {
     }
 
     String youTubeApiKey = args[0].substring(ARG_PARAM.length());
-
     YouTubeService.configureAPIKey(youTubeApiKey);
 
     frontendUrl = args[1].substring(ARG_PARAM_2.length());
+
+    cachedShows = YouTubeService.getCompletedShows();
 
     SpringApplication.run(Application.class, args);
   }
