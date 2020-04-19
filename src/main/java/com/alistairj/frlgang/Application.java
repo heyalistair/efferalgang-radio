@@ -1,4 +1,4 @@
-package com.alistairj.eflgangradio;
+package com.alistairj.frlgang;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
