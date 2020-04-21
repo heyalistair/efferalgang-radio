@@ -57,11 +57,6 @@ public class Application {
     return jsonResponse;
   }
 
-  @Scheduled(cron = "45 0,1 * ? * *")
-  public void scheduleTaskUsingCronExpression() throws GeneralSecurityException, IOException {
-    cachedliveShow = YouTubeService.getCurrentLiveShow();
-  }
-
   /**
    * Run the application.
    *
@@ -83,12 +78,22 @@ public class Application {
     }
 
     String youTubeApiKey = args[0].substring(ARG_PARAM.length());
+
+    // TODO: youTube service must accept multiple keys
     YouTubeService.configureAPIKey(youTubeApiKey);
+
+    // 1) Create radio player
+
+    // 2) Make sure player initialized its archive
+
+    // 3) Make sure player initialize it's upcoming
+
+    // 4) Check the current live show
 
     frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
     cachedShows = YouTubeService.getCompletedShows();
-    cachedliveShow = YouTubeService.getCurrentLiveShow();
+    cachedliveShow = YouTubeService.getCurrentLiveShows().get(0);
 
     SpringApplication.run(Application.class, args);
   }
