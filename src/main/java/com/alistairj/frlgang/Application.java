@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,6 +48,17 @@ public class Application {
     return radioPlayer;
   }
 
+  @Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,9,30,31,32,33,35,37 * ? * *")
+  public void fetchLiveShowStatus() {
+    radioPlayer.getLivePlayer().fetchLiveShowStatus();
+  }
+
+  @Scheduled(cron = "0 15,45 * ? * *")
+  public void fetchUpcomingShowStatus() {
+    radioPlayer.getLivePlayer().fetchUpcomingShowStatus();
+  }
+
+
   /**
    * Run the application.
    *
@@ -72,18 +84,8 @@ public class Application {
 
     ApiManager.initialize(youTubeApiKeyCSV);
 
-    // 1) Create radio player
+    // create the radio player
     radioPlayer = new RadioPlayer();
-
-    // 2) Make sure player initialized its archive
-
-    // 3) Make sure player initialize it's upcoming
-
-    // 4) Check the current live show
-
-
-//    cachedShows = YouTubeService.getCompletedShows();
-//    cachedliveShow = YouTubeService.getCurrentLiveShows().get(0);
 
     SpringApplication.run(Application.class, args);
   }

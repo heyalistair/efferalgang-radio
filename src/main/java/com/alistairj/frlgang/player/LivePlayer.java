@@ -48,7 +48,6 @@ public class LivePlayer {
   /**
    * Get list of live shows.
    */
-  @Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,8,9,31,32,33,35,37 * ? * *")
   public void fetchLiveShowStatus() {
     List<String> currentLiveIds;
     try {
