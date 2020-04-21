@@ -13,3 +13,4 @@
 # Gradle
 \.gradle
 build/
+/run_local.sh

@@ -1,12 +1,10 @@
 package com.alistairj.frlgang;
 
+import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
+
+
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.YouTubeRequestInitializer;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
@@ -29,39 +27,13 @@ public class YouTubeService {
 
   private static Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-  // private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
-  private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
+  private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  //private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
 
-  private static String API_KEY = null;
-
-  private static final String APPLICATION_NAME = "EfferalGang Radio Live";
-  private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+  private static List<String> API_KEY = null;
 
   private static YouTube service = null;
 
-  public static void configureAPIKey(String apiKey) {
-    API_KEY = apiKey;
-  }
-
-  /**
-   * Build and return an authorized API client service.
-   *
-   * @return an authorized API client service
-   */
-  private static YouTube getService() throws GeneralSecurityException, IOException {
-
-    if (service == null) {
-
-      final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-
-      service = new YouTube.Builder(httpTransport, JSON_FACTORY, null)
-          .setApplicationName(APPLICATION_NAME)
-          .setYouTubeRequestInitializer(new YouTubeRequestInitializer(API_KEY))
-          .build();
-    }
-
-    return service;
-  }
 
   /**
    * Fetch current live show.
@@ -69,7 +41,7 @@ public class YouTubeService {
    */
   public static List<String> getCurrentLiveShows() throws GeneralSecurityException, IOException {
 
-    YouTube youtubeService = getService();
+    YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
 
     YouTube.Search.List request = youtubeService.search()
@@ -95,7 +67,7 @@ public class YouTubeService {
 
   public static List<String> getUpcomingShows() throws GeneralSecurityException, IOException {
 
-    YouTube youtubeService = getService();
+    YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
 
     YouTube.Search.List request = youtubeService.search()
@@ -121,7 +93,7 @@ public class YouTubeService {
 
   public static List<Video> getVideoDetails(List<String> videoIds) throws GeneralSecurityException, IOException {
 
-    YouTube youtubeService = getService();
+    YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
 
     YouTube.Videos.List request = youtubeService.videos()
@@ -142,7 +114,7 @@ public class YouTubeService {
    */
   public static List<ArchivedVideo> getCompletedShows() throws GeneralSecurityException, IOException {
 
-    YouTube youtubeService = getService();
+    YouTube youtubeService = getYouTubeApi();
 
     // Define and execute the API request
     YouTube.Search.List request = youtubeService.search()
@@ -162,7 +134,7 @@ public class YouTubeService {
       videoIds.add(item.getId().getVideoId());
     }
     logger.info("Fetched {} past shows", videoIds.size());
-    // TODO: get all shows
+    // TODO: get all shows, not just 50
 
     List<Video> videoDetails = YouTubeService.getVideoDetails(videoIds);
 

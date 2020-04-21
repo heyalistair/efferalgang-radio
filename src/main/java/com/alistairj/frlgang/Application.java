@@ -67,11 +67,10 @@ public class Application {
       logger.info("Configuration is correct");
     }
 
-    String youTubeApiKey = args[0].substring(ARG_PARAM.length());
+    String youTubeApiKeyCSV = args[0].substring(ARG_PARAM.length());
     frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
-    // TODO: youTube service must accept multiple keys
-    YouTubeService.configureAPIKey(youTubeApiKey);
+    ApiManager.initialize(youTubeApiKeyCSV);
 
     // 1) Create radio player
     radioPlayer = new RadioPlayer();
