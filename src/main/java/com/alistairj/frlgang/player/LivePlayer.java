@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * On initialization, getUpcomingShows should always be called be called before getLiveShows.
@@ -48,7 +49,7 @@ public class LivePlayer {
   /**
    * Get list of live shows.
    */
-  //@Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,8,9,31,32,33,35,37 * ? * *")
+  @Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,8,9,31,32,33,35,37 * ? * *")
   public void fetchLiveShowStatus() {
     List<String> currentLiveIds;
     try {
@@ -124,7 +125,7 @@ public class LivePlayer {
   /**
    * Get list of upcoming shows.
    */
-  //@Scheduled(cron = "15 45 * ? * *")
+  @Scheduled(cron = "15 45 * ? * *")
   public void fetchUpcomingShowStatus() {
     List<Video> fetchedVideos = new ArrayList<>();
 
