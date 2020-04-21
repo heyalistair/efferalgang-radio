@@ -12,6 +12,7 @@ import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,37 +115,53 @@ public class YouTubeService {
    */
   public static List<ArchivedVideo> getCompletedShows() throws GeneralSecurityException, IOException {
 
+    List<List<String>> videoIdBatches = new ArrayList<>();
+
     YouTube youtubeService = getYouTubeApi();
 
     // Define and execute the API request
     YouTube.Search.List request = youtubeService.search()
-        .list("id");
-    SearchListResponse response = request
+        .list("id")
         .setMaxResults(50L)
         .setPart("id")
-        .setOrder("date")
         .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
         .setType("video")
-        .setEventType("completed")
-        .execute();
+        .setEventType("completed");
 
-    List<String> videoIds = new ArrayList<>();
+    boolean moreArchiveRemaining = true;
 
-    for (SearchResult item : response.getItems()) {
-      videoIds.add(item.getId().getVideoId());
-    }
-    logger.info("Fetched {} past shows", videoIds.size());
-    // TODO: get all shows, not just 50
+    do {
+      SearchListResponse response = request.execute();
 
-    List<Video> videoDetails = YouTubeService.getVideoDetails(videoIds);
+      List<String> videoIds = new ArrayList<>();
+      for (SearchResult item : response.getItems()) {
+        videoIds.add(item.getId().getVideoId());
+      }
+      videoIdBatches.add(videoIds);
+
+      if (response.getNextPageToken() != null) {
+        request.setPageToken(response.getNextPageToken());
+      } else {
+        moreArchiveRemaining = false;
+      }
+
+    } while (moreArchiveRemaining);
+
+    logger.info("Fetched {} batches of past shows", videoIdBatches.size());
 
     List<ArchivedVideo> archivedVideos = new ArrayList<>();
-    for (Video v : videoDetails) {
-      long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
-      long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
-      long duration = endInstant - startInstant;
-      archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
+
+    for (List<String> batch: videoIdBatches) {
+      List<Video> videoDetails = YouTubeService.getVideoDetails(batch);
+      for (Video v : videoDetails) {
+        long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
+        long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
+        long duration = endInstant - startInstant;
+        archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
+      }
     }
+
+    Collections.shuffle(archivedVideos);
 
     return archivedVideos;
   }

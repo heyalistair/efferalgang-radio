@@ -2,7 +2,6 @@ package com.alistairj.frlgang.player;
 
 import static com.alistairj.frlgang.player.RadioPlayerUtils.isUpcomingVideoPending;
 
-
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
