@@ -6,17 +6,21 @@ import java.security.GeneralSecurityException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Archive player manages a queue of archived videos and tracks a playhead so that all web
+ * players will start at the same time.
+ *
  * @author Alistair Jones (alistair@ohalo.co)
  */
 public class ArchivePlayer {
 
   private static final Logger logger = LoggerFactory.getLogger(ArchivePlayer.class);
 
-  private ArchivedVideo current = null;
+  private ArchivedVideo currentVideo = null;
 
   private long currentPlayheadInSeconds = 0;
 
@@ -26,13 +30,62 @@ public class ArchivePlayer {
 
   private ConcurrentLinkedQueue<ArchivedVideo> queue = new ConcurrentLinkedQueue<>();
 
-  private void rebuildQueue() throws GeneralSecurityException, IOException {
-    // get queue and duration
-    logger.debug("REBUILDING QUEUE");
+  private ReentrantLock lock = new ReentrantLock();
 
-    queue.addAll(YouTubeService.getCompletedShows());
+  private TimerTask task = new TimerTask() {
+    @Override
+    public void run() {
+      // step playhead forward 1 second
+      currentPlayheadInSeconds++;
+
+      // check if video is over
+      if (currentVideo == null || currentPlayheadInSeconds > currentVideo.getDurationInSeconds()) {
+
+        // if so start a new video from the queue
+        ArchivedVideo video = queue.poll();
+
+        if (video == null) {
+          logger.error("ARCHIVE VIDEO QUEUE IS EMPTY");
+        }
+
+        if (queue.size() < 2) {
+          rebuildQueue();
+        }
+
+        currentVideo = video;
+        currentPlayheadInSeconds = 0;
+      }
+    }
+  };
+
+  public ArchivePlayer() {
+    rebuildQueue();
   }
 
+  private void rebuildQueue() {
+
+    if (lock.tryLock()) {
+      try {
+        logger.debug("Rebuilding video archive queue...");
+        queue.addAll(YouTubeService.getCompletedShows());
+        logger.debug("Rebuilding video archive queue complete. (Video count: {})", queue.size());
+      } catch (GeneralSecurityException | IOException e) {
+        logger.error("Archived play is unavailable.", e);
+      } finally {
+        lock.unlock();
+      }
+    } else {
+      logger.debug("Queue is already being rebuilt");
+    }
+  }
+
+  /**
+   * Start advancing the playhead of the archive player.
+   *
+   * <p>
+   * If it's already playing it won't change anything to call it multiple times.
+   * </p>
+   */
   public synchronized void play() {
 
     if (isPlaying == false) {
@@ -42,6 +95,13 @@ public class ArchivePlayer {
     isPlaying = true;
   }
 
+  /**
+   * Stop the playhead of the archive player.
+   *
+   * <p>
+   * If it's already stopped it won't change anything to call it multiple times.
+   * </p>
+   */
   public synchronized void stop() {
     if (isPlaying) {
       playCounter.cancel();
@@ -49,32 +109,15 @@ public class ArchivePlayer {
     isPlaying = false;
   }
 
-  private TimerTask task = new TimerTask() {
-    @Override
-    public void run() {
-      // step playhead forward 1 second
-      currentPlayheadInSeconds++;
+  public ArchivedVideo getCurrentVideo() {
+    return currentVideo;
+  }
 
-      // check if video is over
-      if (currentPlayheadInSeconds > current.getDuration()) {
-        ArchivedVideo video = queue.poll();
-        if (video == null) {
-          try {
-            rebuildQueue();
-          } catch (GeneralSecurityException | IOException e) {
-            logger.error("Cannot rebuild queue");
-          }
+  public long getCurrentPlayheadInSeconds() {
+    return currentPlayheadInSeconds;
+  }
 
-          video = queue.poll();
-          if (video == null) {
-            logger.error("We can't get any archived videos");
-          }
-        }
-
-        // if so start a new video
-        current = video;
-        currentPlayheadInSeconds = 0;
-      }
-    }
-  };
+  public ArchivedVideo peekNextVideo() {
+    return queue.peek();
+  }
 }

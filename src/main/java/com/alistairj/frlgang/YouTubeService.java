@@ -13,16 +13,14 @@ import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Fetch information from YouTube.
- *
+ * <p>
  * TODO: change this to do the so that the YouTube objectS are behind a Singleton
  *
  * @author Alistair Jones (alistair@ohalo.co)
@@ -31,7 +29,8 @@ public class YouTubeService {
 
   private static Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-  private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  // private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
 
   private static String API_KEY = null;
 
@@ -85,7 +84,7 @@ public class YouTubeService {
 
     List<String> videoIds = new ArrayList<>();
 
-    for (SearchResult result: response.getItems()) {
+    for (SearchResult result : response.getItems()) {
       videoIds.add(result.getId().getVideoId());
     }
 
@@ -111,7 +110,7 @@ public class YouTubeService {
 
     List<String> videoIds = new ArrayList<>();
 
-    for (SearchResult result: response.getItems()) {
+    for (SearchResult result : response.getItems()) {
       videoIds.add(result.getId().getVideoId());
     }
 
@@ -157,8 +156,6 @@ public class YouTubeService {
         .setEventType("completed")
         .execute();
 
-    logger.info("response: {}", response);
-
     List<String> videoIds = new ArrayList<>();
 
     for (SearchResult item : response.getItems()) {
@@ -170,11 +167,11 @@ public class YouTubeService {
     List<Video> videoDetails = YouTubeService.getVideoDetails(videoIds);
 
     List<ArchivedVideo> archivedVideos = new ArrayList<>();
-    for (Video v: videoDetails) {
+    for (Video v : videoDetails) {
       long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
       long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
       long duration = endInstant - startInstant;
-      archivedVideos.add(new ArchivedVideo(v.getId(), duration));
+      archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
     }
 
     return archivedVideos;

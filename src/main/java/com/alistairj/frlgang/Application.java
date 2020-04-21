@@ -1,5 +1,6 @@
 package com.alistairj.frlgang;
 
+import com.alistairj.frlgang.player.RadioPlayer;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +29,8 @@ public class Application {
 
   private static String cachedliveShow = null;
 
+  private static RadioPlayer radioPlayer;
+
   private static String getRandomCachedShow() {
     if (cachedShows != null && cachedShows.isEmpty() == false) {
       int chosenIndex = random.nextInt(cachedShows.size() - 1);
@@ -39,22 +41,10 @@ public class Application {
   }
 
   @RequestMapping("/live")
-  public String getLiveShow(HttpServletResponse response) throws GeneralSecurityException, IOException {
-
-    String videoId = null;
-    boolean isLive = true;
-
-    if (cachedliveShow == null) {
-      isLive = false;
-      videoId = getRandomCachedShow();
-    } else {
-      videoId = cachedliveShow;
-    }
-
-    String jsonResponse = String.format("{\"video_id\":\"%s\", \"is_live\":%s}", videoId, isLive);
+  public RadioPlayer getLiveShow(HttpServletResponse response) {
 
     response.addHeader("Access-Control-Allow-Origin", frontendUrl);
-    return jsonResponse;
+    return radioPlayer;
   }
 
   /**
@@ -78,11 +68,13 @@ public class Application {
     }
 
     String youTubeApiKey = args[0].substring(ARG_PARAM.length());
+    frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
     // TODO: youTube service must accept multiple keys
     YouTubeService.configureAPIKey(youTubeApiKey);
 
     // 1) Create radio player
+    radioPlayer = new RadioPlayer();
 
     // 2) Make sure player initialized its archive
 
@@ -90,10 +82,9 @@ public class Application {
 
     // 4) Check the current live show
 
-    frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
-    cachedShows = YouTubeService.getCompletedShows();
-    cachedliveShow = YouTubeService.getCurrentLiveShows().get(0);
+//    cachedShows = YouTubeService.getCompletedShows();
+//    cachedliveShow = YouTubeService.getCurrentLiveShows().get(0);
 
     SpringApplication.run(Application.class, args);
   }

@@ -1,24 +1,33 @@
 package com.alistairj.frlgang.player.archive;
 
 /**
+ * Video object that also includes duration in seconds.
+ *
  * @author Alistair Jones (alistair@ohalo.co)
  */
 public class ArchivedVideo {
 
   private String id;
 
-  private long duration;
+  private String title;
 
-  public ArchivedVideo(String id, long duration) {
+  private long durationInSeconds;
+
+  public ArchivedVideo(String id, String title, long durationInSeconds) {
     this.id = id;
-    this.duration = duration;
+    this.title = title;
+    this.durationInSeconds = durationInSeconds;
   }
 
   public String getId() {
     return id;
   }
 
-  public long getDuration() {
-    return duration;
+  public String getTitle() {
+    return title;
+  }
+
+  public long getDurationInSeconds() {
+    return durationInSeconds;
   }
 }

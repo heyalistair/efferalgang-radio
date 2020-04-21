@@ -1,5 +1,8 @@
 package com.alistairj.frlgang.player;
 
+import static com.alistairj.frlgang.player.RadioPlayerUtils.isUpcomingVideoPending;
+
+
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
@@ -12,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * On initialization, getUpcomingShows should always be called be called before getLiveShows.
@@ -23,7 +25,7 @@ public class LivePlayer {
 
   private static final Logger logger = LoggerFactory.getLogger(LivePlayer.class);
 
-  private String currentLiveId;
+  private Video currentLiveVideo;
 
   private List<Video> upcomingVideos = new ArrayList<>();
 
@@ -37,21 +39,34 @@ public class LivePlayer {
    */
   public LivePlayer(RadioPlayer rp) {
     this.rp = rp;
+
+    // init
+    fetchLiveShowStatus();
+    fetchUpcomingShowStatus();
   }
 
-  @Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,8,9,31,32,33,35,37 * ? * *")
-  public void getLiveShowStatus() throws GeneralSecurityException, IOException {
-    List<String> currentLiveIds = YouTubeService.getCurrentLiveShows();
+  /**
+   * Get list of live shows.
+   */
+  //@Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,8,9,31,32,33,35,37 * ? * *")
+  public void fetchLiveShowStatus() {
+    List<String> currentLiveIds;
+    try {
+      currentLiveIds = YouTubeService.getCurrentLiveShows();
+    } catch (GeneralSecurityException | IOException e) {
+      logger.error("Unable to get current live shows!", e);
+      return;
+    }
 
     if (currentLiveIds.size() == 0) {
       // nothing is live, so check to see if something is pending or just play from the archive
-      currentLiveId = null;
+      currentLiveVideo = null;
 
       Video upcoming = isUpcomingVideoPending(upcomingVideos);
       if (upcoming == null) {
         rp.setStatusArchivedPlay();
       } else {
-        rp.setStatusUpcoming(upcoming);
+        rp.setStatusUpcoming();
       }
     } else {
       // something is live!
@@ -60,45 +75,65 @@ public class LivePlayer {
       if (currentLiveIds.size() > 1) {
         // oh god, more than one this is live! Figure out which one should be the canonical live
 
-        List<Video> currentLives = YouTubeService.getVideoDetails(currentLiveIds);
+        List<Video> currentLives = new ArrayList<>();
+        try {
+          currentLives = YouTubeService.getVideoDetails(currentLiveIds);
 
-        Video mostRecentlyScheduledLive = null;
-        ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime mostRecentlyScheduledTime = ZonedDateTime.now().minusYears(10);
-        for (Video v : currentLives) {
-          ZonedDateTime scheduled =
-              ZonedDateTime.ofInstant(Instant.ofEpochSecond(
-                  v.getLiveStreamingDetails().getScheduledStartTime().getValue()),
-                  ZoneOffset.UTC);
+          Video mostRecentlyScheduledLive = null;
+          ZonedDateTime now = ZonedDateTime.now();
+          ZonedDateTime mostRecentlyScheduledTime = ZonedDateTime.now().minusYears(10);
+          for (Video v : currentLives) {
+            ZonedDateTime scheduled =
+                ZonedDateTime.ofInstant(Instant.ofEpochSecond(
+                    v.getLiveStreamingDetails().getScheduledStartTime().getValue()),
+                    ZoneOffset.UTC);
 
-          if (now.isAfter(scheduled)) { // i
-            if (scheduled.isAfter(mostRecentlyScheduledTime)) {
-              mostRecentlyScheduledLive = v;
-              mostRecentlyScheduledTime = scheduled;
+            if (now.isAfter(scheduled)) { // i
+              if (scheduled.isAfter(mostRecentlyScheduledTime)) {
+                mostRecentlyScheduledLive = v;
+                mostRecentlyScheduledTime = scheduled;
+              }
             }
           }
-        }
 
-        if (mostRecentlyScheduledLive == null) {
-          logger.warn("There are two different videos that have started before their scheduled "
-              + "time... the DJs must be whipped. Just pick a current live at random.");
+          if (mostRecentlyScheduledLive == null) {
+            logger.warn("There are two different videos that have started before their scheduled "
+                + "time... the DJs must be whipped. Just pick a current live at random.");
+            currentLive = currentLives.get(0);
+          } else {
+            currentLive = mostRecentlyScheduledLive;
+          }
+
+        } catch (GeneralSecurityException | IOException e) {
+          logger.error("Unable to get information about current live shows!", e);
           currentLive = currentLives.get(0);
-        } else {
-          currentLive = mostRecentlyScheduledLive;
         }
 
-        if (currentLiveId.equals(currentLive.getId()) == false) {
-          rp.setStatusLive(currentLiveId);
+        if (currentLiveVideo.getId().equals(currentLive.getId()) == false) {
+          currentLiveVideo = currentLive;
+
+          // remove from upcoming as this information will always be the most recent.
+          upcomingVideos.removeIf(v -> v.getId().equals(currentLiveVideo.getId()));
+
+          rp.setStatusLive();
         }
       }
     }
   }
 
-  @Scheduled(cron = "15 45 * ? * *")
-  public void getUpcomingShowStatus() throws GeneralSecurityException, IOException {
-    List<String> currentUpcomingIds = YouTubeService.getUpcomingShows();
+  /**
+   * Get list of upcoming shows.
+   */
+  //@Scheduled(cron = "15 45 * ? * *")
+  public void fetchUpcomingShowStatus() {
+    List<Video> fetchedVideos = new ArrayList<>();
 
-    List<Video> fetchedVideos = YouTubeService.getVideoDetails(currentUpcomingIds);
+    try {
+      List<String> currentUpcomingIds = YouTubeService.getUpcomingShows();
+      fetchedVideos = YouTubeService.getVideoDetails(currentUpcomingIds);
+    } catch (GeneralSecurityException | IOException e) {
+      logger.error("Unable to get upcoming live shows!", e);
+    }
 
     fetchedVideos.sort((o1, o2) -> {
       DateTime d1 = o1.getLiveStreamingDetails().getScheduledStartTime();
@@ -106,8 +141,10 @@ public class LivePlayer {
       return (int) (d1.getValue() - d2.getValue());
     });
 
+    // assign to global member only after sorting
     upcomingVideos = fetchedVideos;
 
+    // print some nice log
     Video upcoming;
     if (fetchedVideos.size() > 0) {
       upcoming = fetchedVideos.get(0);
@@ -131,34 +168,12 @@ public class LivePlayer {
     }
   }
 
-  /**
-   * Returns the next upcoming video, if there is one.
-   *
-   * @param upcomingList The list of videos sorted by scheduled time.
-   * @return video Upcoming video, or null if there is none.
-   */
-  private static Video isUpcomingVideoPending(List<Video> upcomingList) {
-    if (upcomingList == null) {
-      return null;
-    }
-
-    if (upcomingList.size() > 0) {
-      DateTime dt = upcomingList.get(0).getLiveStreamingDetails().getScheduledStartTime();
-      ZonedDateTime scheduled = getDateTime(dt);
-      ZonedDateTime now = ZonedDateTime.now();
-      ZonedDateTime tenMinutesAgo = now.minusMinutes(10);
-      ZonedDateTime inTenMinutes = now.plusMinutes(10);
-      if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(tenMinutesAgo)) {
-        return upcomingList.get(0);
-      }
-    }
-
-    return null;
+  public Video getCurrentLiveVideo() {
+    return currentLiveVideo;
   }
 
-  public static ZonedDateTime getDateTime(DateTime dt) {
-    Instant instant = Instant.ofEpochSecond(dt.getValue());
-    return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
+  public List<Video> getUpcomingVideos() {
+    return upcomingVideos;
   }
 
 }
