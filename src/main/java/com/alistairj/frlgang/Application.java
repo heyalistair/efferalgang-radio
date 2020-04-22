@@ -48,10 +48,22 @@ public class Application {
     return radioPlayer;
   }
 
-  @Scheduled(cron = "15,45 0,1,2,3,4,5,6,7,9,30,31,32,33,35,37 * ? * *")
+  /**
+   * Timed to help with hourly DJ transitions.
+   */
+  @Scheduled(cron = "15,45 0,1,2,3,4,5,7,9 * ? * *")
   public void fetchLiveShowStatus() {
     radioPlayer.getLivePlayer().fetchLiveShowStatus();
   }
+
+  /**
+   * Timed to help with upcoming.
+   */
+  @Scheduled(cron = "15 25,30,32,33,35,37,55,57,59 * ? * *")
+  public void fetchLiveShowStatusOncePerMinute() {
+    radioPlayer.getLivePlayer().fetchLiveShowStatus();
+  }
+
 
   @Scheduled(cron = "0 15,45 * ? * *")
   public void fetchUpcomingShowStatus() {
