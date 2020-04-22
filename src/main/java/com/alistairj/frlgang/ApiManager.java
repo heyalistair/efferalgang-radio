@@ -48,6 +48,8 @@ public class ApiManager {
 
     for (String key : keys) {
 
+      logger.debug("Initializing API service with key '{}'", key);
+
       final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
       youTubeAPIs.add(new YouTube.Builder(httpTransport, JSON_FACTORY, null)
@@ -56,7 +58,7 @@ public class ApiManager {
           .build());
     }
 
-    logger.warn("Initialized {} YouTube services", youTubeAPIs.size());
+    logger.info("Initialized {} YouTube services", youTubeAPIs.size());
   }
 
   /**
