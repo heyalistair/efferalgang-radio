@@ -149,16 +149,19 @@ public class YouTubeService {
 
     List<ArchivedVideo> archivedVideos = new ArrayList<>();
 
+    long totalDurationInSeconds = 0;
     for (List<String> batch: videoIdBatches) {
       List<Video> videoDetails = YouTubeService.getVideoDetails(batch);
       for (Video v : videoDetails) {
         long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
         long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
         long duration = (endInstant - startInstant) / 1000;
+        totalDurationInSeconds += duration;
         archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
       }
     }
 
+    logger.info("Total duration of archive in seconds is {}!!", totalDurationInSeconds);
     Collections.shuffle(archivedVideos);
 
     return archivedVideos;
