@@ -29,7 +29,7 @@ public class LivePlayer {
 
   private List<Video> upcomingVideos = new ArrayList<>();
 
-  private RadioPlayer rp;
+  private final RadioPlayer rp;
 
   /**
    * Build a new LivePlayer.
@@ -61,21 +61,23 @@ public class LivePlayer {
       // nothing is live, so check to see if something is pending or just play from the archive
       currentLiveVideo = null;
 
+      logger.debug("Testing video upcoming");
       Video upcoming = isUpcomingVideoPending(upcomingVideos);
       if (upcoming == null) {
         rp.setStatusArchivedPlay();
       } else {
+        logger.debug("Video is upcoming");
         rp.setStatusUpcoming();
       }
     } else {
       // something is live!
       Video currentLive;
 
-      if (currentLiveIds.size() > 1) {
-        // oh god, more than one this is live! Figure out which one should be the canonical live
+      try {
+        if (currentLiveIds.size() > 1) {
+          // oh god, more than one this is live! Figure out which one should be the canonical live
 
-        List<Video> currentLives = new ArrayList<>();
-        try {
+          List<Video> currentLives = new ArrayList<>();
           currentLives = YouTubeService.getVideoDetails(currentLiveIds);
 
           Video mostRecentlyScheduledLive = null;
@@ -103,19 +105,23 @@ public class LivePlayer {
             currentLive = mostRecentlyScheduledLive;
           }
 
-        } catch (GeneralSecurityException | IOException e) {
-          logger.error("Unable to get information about current live shows!", e);
-          currentLive = currentLives.get(0);
+        } else {
+          currentLive = YouTubeService.getVideoDetails(currentLiveIds).get(0);
         }
+      } catch (GeneralSecurityException | IOException e) {
+        logger.error("Unable to get information about current live shows!", e);
+        currentLive = null;
+      }
 
-        if (currentLiveVideo.getId().equals(currentLive.getId()) == false) {
-          currentLiveVideo = currentLive;
+      if (currentLive != null &&
+          (currentLiveVideo == null
+              || currentLiveVideo.getId().equals(currentLive.getId()) == false)) {
+        currentLiveVideo = currentLive;
 
-          // remove from upcoming as this information will always be the most recent.
-          upcomingVideos.removeIf(v -> v.getId().equals(currentLiveVideo.getId()));
+        // remove from upcoming as this information will always be the most recent.
+        upcomingVideos.removeIf(v -> v.getId().equals(currentLiveVideo.getId()));
 
-          rp.setStatusLive();
-        }
+        rp.setStatusLive();
       }
     }
   }
