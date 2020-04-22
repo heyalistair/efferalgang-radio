@@ -6,6 +6,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Radio play general utils.
@@ -13,6 +15,8 @@ import java.util.List;
  * @author Alistair Jones (alistair@ohalo.co)
  */
 public class RadioPlayerUtils {
+
+  private static final Logger logger = LoggerFactory.getLogger(RadioPlayerUtils.class);
 
   private RadioPlayerUtils() {
     // private constructor
@@ -31,12 +35,18 @@ public class RadioPlayerUtils {
     }
 
     if (upcomingList.size() > 0) {
+
       DateTime dt = upcomingList.get(0).getLiveStreamingDetails().getScheduledStartTime();
       ZonedDateTime scheduled = getDateTime(dt);
       ZonedDateTime now = ZonedDateTime.now();
       ZonedDateTime tenMinutesAgo = now.minusMinutes(10);
       ZonedDateTime inTenMinutes = now.plusMinutes(10);
+
+      logger.debug("Next upcoming video is scheduled at {}, testing to see if it is before {}, " +
+          "and after {}", scheduled, inTenMinutes, tenMinutesAgo);
+
       if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(tenMinutesAgo)) {
+        logger.debug("Video is upcoming");
         return upcomingList.get(0);
       }
     }
