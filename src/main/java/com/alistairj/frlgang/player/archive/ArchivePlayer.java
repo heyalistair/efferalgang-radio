@@ -26,7 +26,7 @@ public class ArchivePlayer {
 
   private boolean isPlaying = false;
 
-  private Timer playCounter = new Timer("Playhead");
+  private Timer playCounter;
 
   private ConcurrentLinkedQueue<ArchivedVideo> queue = new ConcurrentLinkedQueue<>();
 
@@ -89,7 +89,10 @@ public class ArchivePlayer {
   public synchronized void play() {
 
     if (isPlaying == false) {
-      playCounter.scheduleAtFixedRate(task, 0, 1000);
+      if (playCounter == null) {
+        playCounter = new Timer("playhead-timer");
+        playCounter.scheduleAtFixedRate(task, 0, 1000);
+      }
     }
 
     isPlaying = true;
@@ -105,6 +108,7 @@ public class ArchivePlayer {
   public synchronized void stop() {
     if (isPlaying) {
       playCounter.cancel();
+      playCounter = null;
     }
     isPlaying = false;
   }
