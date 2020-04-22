@@ -49,7 +49,6 @@ public class YouTubeService {
         .list("id");
     SearchListResponse response = request
         .setMaxResults(10L)
-        .setOrder("date")
         .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
         .setType("video")
         .setEventType("live")
@@ -101,7 +100,6 @@ public class YouTubeService {
         .list("liveStreamingDetails,snippet");
 
     VideoListResponse response = request
-        .setMaxResults(1L)
         .setId(String.join(",", videoIds))
         .execute();
 
@@ -156,7 +154,7 @@ public class YouTubeService {
       for (Video v : videoDetails) {
         long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
         long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
-        long duration = endInstant - startInstant;
+        long duration = (endInstant - startInstant) / 1000;
         archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
       }
     }
