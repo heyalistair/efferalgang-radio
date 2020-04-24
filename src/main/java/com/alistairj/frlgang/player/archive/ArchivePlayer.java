@@ -32,31 +32,34 @@ public class ArchivePlayer {
 
   private ReentrantLock lock = new ReentrantLock();
 
-  private TimerTask task = new TimerTask() {
-    @Override
-    public void run() {
-      // step playhead forward 1 second
-      currentPlayheadInSeconds++;
+  private TimerTask getNewTimerTask() {
+    return new TimerTask() {
+      @Override
+      public void run() {
+        // step playhead forward 1 second
+        currentPlayheadInSeconds++;
 
-      // check if video is over
-      if (currentVideo == null || currentPlayheadInSeconds > currentVideo.getDurationInSeconds()) {
+        // check if video is over
+        if (currentVideo == null
+            || currentPlayheadInSeconds > currentVideo.getDurationInSeconds()) {
 
-        // if so start a new video from the queue
-        ArchivedVideo video = queue.poll();
+          // if so start a new video from the queue
+          ArchivedVideo video = queue.poll();
 
-        if (video == null) {
-          logger.error("ARCHIVE VIDEO QUEUE IS EMPTY");
+          if (video == null) {
+            logger.error("ARCHIVE VIDEO QUEUE IS EMPTY");
+          }
+
+          if (queue.size() < 2) {
+            rebuildQueue();
+          }
+
+          currentVideo = video;
+          currentPlayheadInSeconds = 0;
         }
-
-        if (queue.size() < 2) {
-          rebuildQueue();
-        }
-
-        currentVideo = video;
-        currentPlayheadInSeconds = 0;
       }
-    }
-  };
+    };
+  }
 
   public ArchivePlayer() {
     rebuildQueue();
@@ -91,7 +94,7 @@ public class ArchivePlayer {
     if (isPlaying == false) {
       if (playCounter == null) {
         playCounter = new Timer("playhead-timer");
-        playCounter.scheduleAtFixedRate(task, 0, 1000);
+        playCounter.scheduleAtFixedRate(getNewTimerTask(), 0, 1000);
       }
     }
 
