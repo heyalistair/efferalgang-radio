@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @JsonSerialize(using = RadioPlayerSerializer.class)
 public class RadioPlayer {
 
-  private ArchivePlayer archivePlayer;
+  private final ArchivePlayer archivePlayer;
 
-  private LivePlayer livePlayer;
+  private final LivePlayer livePlayer;
 
   private BroadcastStatus status = BroadcastStatus.ARCHIVE;
 

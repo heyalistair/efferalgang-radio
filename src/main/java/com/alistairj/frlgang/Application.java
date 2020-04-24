@@ -49,27 +49,18 @@ public class Application {
   }
 
   /**
-   * Timed to help with hourly DJ transitions.
-   */
-  @Scheduled(cron = "15,45 0,1,2,3,4,5,7,9 * ? * *")
-  public void fetchLiveShowStatus() {
-    radioPlayer.getLivePlayer().fetchLiveShowStatus();
-  }
-
-  /**
    * Timed to help with upcoming.
    */
-  @Scheduled(cron = "15 25,30,32,33,35,37,55,57,59 * ? * *")
+  @Scheduled(cron = "0 09,19,29,39,49,59 * ? * *")
   public void fetchLiveShowStatusOncePerMinute() {
-    radioPlayer.getLivePlayer().fetchLiveShowStatus();
+    radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
 
 
-  @Scheduled(cron = "0 15,45 * ? * *")
+  @Scheduled(cron = "20,50 * * ? * *")
   public void fetchUpcomingShowStatus() {
-    radioPlayer.getLivePlayer().fetchUpcomingShowStatus();
+    radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
   }
-
 
   /**
    * Run the application.

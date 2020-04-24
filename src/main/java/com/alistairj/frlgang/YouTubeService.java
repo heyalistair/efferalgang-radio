@@ -2,7 +2,6 @@ package com.alistairj.frlgang;
 
 import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
 
-
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -10,37 +9,69 @@ import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Fetch information from YouTube.
- * <p>
- * TODO: change this to do the so that the YouTube objectS are behind a Singleton
  *
  * @author Alistair Jones (alistair@ohalo.co)
  */
 public class YouTubeService {
 
-  private static Logger logger = LoggerFactory.getLogger(YouTubeService.class);
+  private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
   private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
   //private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
 
-  private static List<String> API_KEY = null;
+  /**
+   * Fetch all upcoming and live show ids.
+   */
+  public static Set<String> getCurrentAndUpcomingLiveShowIds() throws IOException {
+    YouTube youtubeService = getYouTubeApi();
+    // Define and execute the API request
 
-  private static YouTube service = null;
+    YouTube.Search.List request = youtubeService.search()
+        .list("id");
+    SearchListResponse response = request
+        .setMaxResults(50L)
+        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setType("video")
+        .setEventType("live")
+        .execute();
+
+    Set<String> videoIds = new HashSet<>();
+
+    for (SearchResult result : response.getItems()) {
+      videoIds.add(result.getId().getVideoId());
+    }
+
+    request = youtubeService.search()
+        .list("id");
+    response = request
+        .setMaxResults(50L)
+        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setType("video")
+        .setEventType("upcoming")
+        .execute();
+
+    for (SearchResult result : response.getItems()) {
+      videoIds.add(result.getId().getVideoId());
+    }
+    return videoIds;
+  }
 
 
   /**
    * Fetch current live show.
-   * TODO: Cache this
    */
-  public static List<String> getCurrentLiveShows() throws GeneralSecurityException, IOException {
+  public static List<String> getCurrentLiveShows() throws IOException {
 
     YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
@@ -65,7 +96,13 @@ public class YouTubeService {
     return videoIds;
   }
 
-  public static List<String> getUpcomingShows() throws GeneralSecurityException, IOException {
+  /**
+   * Search for upcoming shows.
+   *
+   * @return List of found upcoming shows
+   * @throws IOException Thrown if there is an issue with the YouTube API
+   */
+  public static List<String> getUpcomingShows() throws IOException {
 
     YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
@@ -91,7 +128,15 @@ public class YouTubeService {
     return videoIds;
   }
 
-  public static List<Video> getVideoDetails(List<String> videoIds) throws GeneralSecurityException, IOException {
+  /**
+   * TODO: At the moment, this only takes a maximum of 50.
+   *
+   * @param videoIds Collection of video ids to fetch more information about
+   * @return List of Video object containing the goods.
+   * @throws IOException Thrown if there is an issue with the YouTube API
+   */
+  public static List<Video> getVideoDetails(Collection<String> videoIds)
+      throws IOException {
 
     YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
@@ -111,7 +156,8 @@ public class YouTubeService {
   /**
    * Fetch random completed show.
    */
-  public static List<ArchivedVideo> getCompletedShows() throws GeneralSecurityException, IOException {
+  public static List<ArchivedVideo> getCompletedShows()
+      throws IOException {
 
     List<List<String>> videoIdBatches = new ArrayList<>();
 
@@ -150,7 +196,7 @@ public class YouTubeService {
     List<ArchivedVideo> archivedVideos = new ArrayList<>();
 
     long totalDurationInSeconds = 0;
-    for (List<String> batch: videoIdBatches) {
+    for (List<String> batch : videoIdBatches) {
       List<Video> videoDetails = YouTubeService.getVideoDetails(batch);
       for (Video v : videoDetails) {
         long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();

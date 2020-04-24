@@ -2,7 +2,6 @@ package com.alistairj.frlgang.player.archive;
 
 import com.alistairj.frlgang.YouTubeService;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,9 +27,9 @@ public class ArchivePlayer {
 
   private Timer playCounter;
 
-  private ConcurrentLinkedQueue<ArchivedVideo> queue = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<ArchivedVideo> queue = new ConcurrentLinkedQueue<>();
 
-  private ReentrantLock lock = new ReentrantLock();
+  private final ReentrantLock lock = new ReentrantLock();
 
   private TimerTask getNewTimerTask() {
     return new TimerTask() {
@@ -72,7 +71,7 @@ public class ArchivePlayer {
         logger.debug("Rebuilding video archive queue...");
         queue.addAll(YouTubeService.getCompletedShows());
         logger.debug("Rebuilding video archive queue complete. (Video count: {})", queue.size());
-      } catch (GeneralSecurityException | IOException e) {
+      } catch (IOException e) {
         logger.error("Archived play is unavailable.", e);
       } finally {
         lock.unlock();

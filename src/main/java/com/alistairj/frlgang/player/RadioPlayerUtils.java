@@ -23,6 +23,35 @@ public class RadioPlayerUtils {
   }
 
   /**
+   * Print some nice log.
+   *
+   * @param upcomers The upcoming videos to print.
+   */
+  public static void printUpcomingShows(List<Video> upcomers) {
+    Video upcoming;
+    if (upcomers.size() > 0) {
+      upcoming = upcomers.get(0);
+      logger.debug("1st upcoming video scheduled at:{}, id:{}, name:{}",
+          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
+          upcoming.getId(), upcoming.getSnippet().getTitle());
+    }
+
+    if (upcomers.size() > 1) {
+      upcoming = upcomers.get(1);
+      logger.debug("2nd upcoming video scheduled at:{}, id:{}, name:{}",
+          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
+          upcoming.getId(), upcoming.getSnippet().getTitle());
+    }
+
+    if (upcomers.size() > 2) {
+      upcoming = upcomers.get(2);
+      logger.debug("3rd upcoming video scheduled at:{}, id:{}, name:{}",
+          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
+          upcoming.getId(), upcoming.getSnippet().getTitle());
+    }
+  }
+
+  /**
    * Examines the scheduled times in the list to see if there is a video that is starting
    * imminently.
    *
@@ -48,6 +77,14 @@ public class RadioPlayerUtils {
     }
 
     return null;
+  }
+
+  public static boolean isFirstVideoScheduledAfterSecond(Video v1, Video v2) {
+
+    ZonedDateTime d1 = getDateTime(v1.getLiveStreamingDetails().getScheduledStartTime());
+    ZonedDateTime d2 = getDateTime(v2.getLiveStreamingDetails().getScheduledStartTime());
+
+    return d1.isAfter(d2);
   }
 
   private static ZonedDateTime getDateTime(DateTime dt) {
