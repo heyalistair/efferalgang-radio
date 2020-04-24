@@ -55,7 +55,7 @@ public class RadioPlayerUtils {
   }
 
   private static ZonedDateTime getDateTime(DateTime dt) {
-    Instant instant = Instant.ofEpochSecond(dt.getValue());
+    Instant instant = Instant.ofEpochSecond(dt.getValue() / 1000);
     return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
   }
 }
