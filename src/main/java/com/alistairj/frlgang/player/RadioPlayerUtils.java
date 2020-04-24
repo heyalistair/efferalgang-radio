@@ -42,11 +42,7 @@ public class RadioPlayerUtils {
       ZonedDateTime tenMinutesAgo = now.minusMinutes(10);
       ZonedDateTime inTenMinutes = now.plusMinutes(10);
 
-      logger.debug("Next upcoming video is scheduled at {}, testing to see if it is before {}, " +
-          "and after {}", scheduled, inTenMinutes, tenMinutesAgo);
-
       if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(tenMinutesAgo)) {
-        logger.debug("Video is upcoming");
         return upcomingList.get(0);
       }
     }

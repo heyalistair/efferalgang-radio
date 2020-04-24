@@ -41,8 +41,8 @@ public class LivePlayer {
     this.rp = rp;
 
     // init
-    fetchLiveShowStatus();
     fetchUpcomingShowStatus();
+    fetchLiveShowStatus();
   }
 
   /**
@@ -61,7 +61,7 @@ public class LivePlayer {
       // nothing is live, so check to see if something is pending or just play from the archive
       currentLiveVideo = null;
 
-      logger.debug("Testing video upcoming");
+      logger.debug("Testing if first video is upcoming imminently...");
       Video upcoming = isUpcomingVideoPending(upcomingVideos);
       if (upcoming == null) {
         rp.setStatusArchivedPlay();
