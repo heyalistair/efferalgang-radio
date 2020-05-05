@@ -2,6 +2,7 @@ package com.alistairj.frlgang.player;
 
 import static com.alistairj.frlgang.player.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
 import static com.alistairj.frlgang.player.RadioPlayerUtils.isUpcomingVideoPending;
+import static com.alistairj.frlgang.player.RadioPlayerUtils.printUpcomingShows;
 
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
@@ -55,11 +56,14 @@ public class LivePlayer {
    */
   public void fetchUpcomingAndLiveShowIds() {
     try {
+      logger.info("Getting information about relevant ids");
       Set<String> unverifiedVideoIds = YouTubeService.getCurrentAndUpcomingLiveShowIds();
       fetchBroadcastStatusOfRelevantIds(unverifiedVideoIds);
     } catch (IOException e) {
       logger.error("Unable to get search for upcoming and live shows!", e);
     }
+
+    printUpcomingShows(upcomingVideos);
   }
 
   // this needs to be done once every minute (except when fetchUpcomingAndLiveShowIds fires)
@@ -72,7 +76,7 @@ public class LivePlayer {
     unverifiedVideoIds.addAll(relevantVideoIds);
 
     try {
-      logger.debug("Getting information for {} ids: {}", unverifiedVideoIds.size(),
+      logger.info("Getting information for {} ids: {}", unverifiedVideoIds.size(),
           String.join(",", unverifiedVideoIds));
 
       List<Video> videos = YouTubeService.getVideoDetails(unverifiedVideoIds);
@@ -110,6 +114,19 @@ public class LivePlayer {
 
     } catch (IOException e) {
       logger.error("Unable to get search for upcoming and live shows!", e);
+    }
+
+    if (currentLiveVideo == null) {
+      logger.debug("Testing if first video is upcoming imminently...");
+      Video upcoming = isUpcomingVideoPending(upcomingVideos);
+      if (upcoming == null) {
+        rp.setStatusArchivedPlay();
+      } else {
+        logger.debug("Video is upcoming");
+        rp.setStatusUpcoming();
+      }
+    } else {
+      rp.setStatusLive();
     }
   }
 
