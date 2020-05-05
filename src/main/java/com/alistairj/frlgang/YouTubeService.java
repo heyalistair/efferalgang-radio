@@ -11,6 +11,7 @@ import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,6 +31,16 @@ public class YouTubeService {
 
   private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
   //private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
+
+  private static final List<String> blacklistVideoIds = new ArrayList<>();
+
+  static {
+    blacklistVideoIds.add("h8BmJYyeziM"); // Alistair reads you a bedtime story, ep 1
+    blacklistVideoIds.add("w6JKc2M41IE"); // Alistair reads you a bedtime story, ep 2
+    blacklistVideoIds.add("vZoAtj7ADtU"); // Alistair reads you a bedtime story, ep 3
+    blacklistVideoIds.add("o43qo-6uHQA"); // Alistair reads you a bedtime story, ep 4
+    blacklistVideoIds.add("r4wI_7i3ixw"); // Alistair reads you a bedtime story, ep 5
+  }
 
   /**
    * Fetch all upcoming and live show ids.
@@ -232,7 +243,10 @@ public class YouTubeService {
       for (Video v : videoDetails) {
         long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
         totalDurationInSeconds += duration;
-        archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
+
+        if (blacklistVideoIds) {
+          archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
+        }
       }
     }
 
