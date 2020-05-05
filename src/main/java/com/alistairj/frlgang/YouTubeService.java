@@ -9,6 +9,7 @@ import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -154,6 +155,35 @@ public class YouTubeService {
   }
 
   /**
+   * Useful for archived videos because it fetches the duration.
+   *
+   * <p>
+   * TODO: At the moment, this only takes a maximum of 50.
+   * </p>
+   *
+   * @param videoIds Collection of video ids to fetch more information about
+   * @return List of Video object containing content details.
+   * @throws IOException Thrown if there is an issue with the YouTube API
+   */
+  public static List<Video> getVideoContentDetails(Collection<String> videoIds)
+      throws IOException {
+
+    YouTube youtubeService = getYouTubeApi();
+    // Define and execute the API request
+
+    YouTube.Videos.List request = youtubeService.videos()
+        .list("contentDetails,snippet");
+
+    VideoListResponse response = request
+        .setId(String.join(",", videoIds))
+        .execute();
+
+    logger.info("Fetched details about multiple videos, count:{}", videoIds.size());
+
+    return response.getItems();
+  }
+
+  /**
    * Fetch random completed show.
    */
   public static List<ArchivedVideo> getCompletedShows()
@@ -181,6 +211,7 @@ public class YouTubeService {
       for (SearchResult item : response.getItems()) {
         videoIds.add(item.getId().getVideoId());
       }
+
       videoIdBatches.add(videoIds);
 
       if (response.getNextPageToken() != null) {
@@ -197,11 +228,9 @@ public class YouTubeService {
 
     long totalDurationInSeconds = 0;
     for (List<String> batch : videoIdBatches) {
-      List<Video> videoDetails = YouTubeService.getVideoDetails(batch);
+      List<Video> videoDetails = YouTubeService.getVideoContentDetails(batch);
       for (Video v : videoDetails) {
-        long startInstant = v.getLiveStreamingDetails().getActualStartTime().getValue();
-        long endInstant = v.getLiveStreamingDetails().getActualEndTime().getValue();
-        long duration = (endInstant - startInstant) / 1000;
+        long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
         totalDurationInSeconds += duration;
         archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
       }
