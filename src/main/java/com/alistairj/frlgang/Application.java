@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@SuppressWarnings("checkstyle:LineLength")
 @SpringBootApplication
 @RestController
 public class Application {
@@ -53,14 +54,19 @@ public class Application {
   /**
    * Timed to help with upcoming.
    */
-  @Scheduled(cron = "0 09,19,29,39,49,59 * ? * *")
-  public void fetchLiveShowStatusOncePerMinute() {
+  @Scheduled(cron = "0 59 * ? * *")
+  public void fetchUpcomingAndLiveShowIds() {
     radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
 
 
-  @Scheduled(cron = "20,50 * * ? * *")
-  public void fetchUpcomingShowStatus() {
+  @Scheduled(cron = "15 0,1,2,3,4,5,6,7,8,9 * ? * *")
+  public void fetchBroadcastStatusOfRelevantIdsEspeciallyForLiveStarts() {
+    radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
+  }
+
+  @Scheduled(cron = "45 0,1,2,3,4,5,6,7,8,9,12,15,18,21,24,30,31,32,33,36,39,42,45,48,51,54,57 * ? * *")
+  public void fetchBroadcastStatusOfRelevantIds() {
     radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
   }
 
