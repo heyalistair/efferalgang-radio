@@ -244,7 +244,7 @@ public class YouTubeService {
         long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
         totalDurationInSeconds += duration;
 
-        if (blacklistVideoIds) {
+        if (blacklistVideoIds.contains(v.getId()) == false) {
           archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
         }
       }
