@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,10 +42,11 @@ public class Application {
     }
   }
 
+  @CrossOrigin
   @RequestMapping("/live")
   public RadioPlayer getLiveShow(HttpServletResponse response) {
 
-    response.addHeader("Access-Control-Allow-Origin", frontendUrl);
+//    response.addHeader("Access-Control-Allow-Origin", frontendUrl);
     return radioPlayer;
   }
 
