@@ -1,6 +1,7 @@
 package com.alistairj.frlgang;
 
 import com.alistairj.frlgang.player.RadioPlayer;
+import com.alistairj.frlgang.player.archive.ArchivePlayer;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -46,9 +47,13 @@ public class Application {
   @CrossOrigin
   @RequestMapping("/live")
   public RadioPlayer getLiveShow(HttpServletResponse response) {
-
-//    response.addHeader("Access-Control-Allow-Origin", frontendUrl);
     return radioPlayer;
+  }
+
+  @CrossOrigin
+  @RequestMapping("/queue")
+  public ArchivePlayer getArchiveQueue(HttpServletResponse response) {
+    return radioPlayer.getArchivePlayer();
   }
 
   /**

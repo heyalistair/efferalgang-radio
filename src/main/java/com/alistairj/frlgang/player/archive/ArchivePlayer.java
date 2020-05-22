@@ -1,6 +1,9 @@
 package com.alistairj.frlgang.player.archive;
 
 import com.alistairj.frlgang.YouTubeService;
+import com.alistairj.frlgang.player.ArchivePlayerSerializer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,6 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alistair Jones (alistair@ohalo.co)
  */
+@JsonSerialize(using = ArchivePlayerSerializer.class)
 public class ArchivePlayer {
 
   private static final Logger logger = LoggerFactory.getLogger(ArchivePlayer.class);
@@ -125,5 +129,18 @@ public class ArchivePlayer {
 
   public ArchivedVideo peekNextVideo() {
     return queue.peek();
+  }
+
+  public void generateQueueJson(JsonGenerator g) throws IOException {
+    g.writeArrayFieldStart("archive_queue");
+
+    for (ArchivedVideo v : queue) {
+      g.writeStartObject();
+      g.writeStringField("id", v.getId());
+      g.writeStringField("title", v.getTitle());
+      g.writeEndObject();
+    }
+
+    g.writeEndArray();
   }
 }
