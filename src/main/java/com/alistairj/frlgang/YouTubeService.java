@@ -11,7 +11,6 @@ import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -40,6 +39,10 @@ public class YouTubeService {
     blacklistVideoIds.add("vZoAtj7ADtU"); // Alistair reads you a bedtime story, ep 3
     blacklistVideoIds.add("o43qo-6uHQA"); // Alistair reads you a bedtime story, ep 4
     blacklistVideoIds.add("r4wI_7i3ixw"); // Alistair reads you a bedtime story, ep 5
+    blacklistVideoIds.add("tJ28g77B0nE"); // Le Dessus des Cartes E01
+    blacklistVideoIds.add("vGb5UyBz6y0"); // Le Dessus des Cartes E02
+    blacklistVideoIds.add("4qfVdFNNcGc"); // Le Dessus des Cartes E03
+    blacklistVideoIds.add("zfEuZN0Rlew"); // Giro
   }
 
   /**
