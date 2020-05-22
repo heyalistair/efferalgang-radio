@@ -18,6 +18,10 @@ public class RadioPlayerUtils {
 
   private static final Logger logger = LoggerFactory.getLogger(RadioPlayerUtils.class);
 
+  private static final int UPCOMING_WAIT_START_BEFORE_MINUTES = 5;
+
+  private static final int UPCOMING_WAIT_TIME_END_AFTER_MINUTES = 10;
+
   private RadioPlayerUtils() {
     // private constructor
   }
@@ -68,10 +72,10 @@ public class RadioPlayerUtils {
       DateTime dt = upcomingList.get(0).getLiveStreamingDetails().getScheduledStartTime();
       ZonedDateTime scheduled = getDateTime(dt);
       ZonedDateTime now = ZonedDateTime.now();
-      ZonedDateTime tenMinutesAgo = now.minusMinutes(10);
-      ZonedDateTime inTenMinutes = now.plusMinutes(10);
+      ZonedDateTime fiveMinutesAgo = now.minusMinutes(UPCOMING_WAIT_START_BEFORE_MINUTES);
+      ZonedDateTime inTenMinutes = now.plusMinutes(UPCOMING_WAIT_TIME_END_AFTER_MINUTES);
 
-      if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(tenMinutesAgo)) {
+      if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(fiveMinutesAgo)) {
         return upcomingList.get(0);
       }
     }
