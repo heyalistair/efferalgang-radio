@@ -2,6 +2,7 @@ package com.alistairj.frlgang;
 
 import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
 
+import com.alistairj.frlgang.player.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -240,14 +241,20 @@ public class YouTubeService {
 
     List<ArchivedVideo> archivedVideos = new ArrayList<>();
 
-    long totalDurationInSeconds = 0;
+    long pastStreamedShowsDuration = 0;
+    long pastStreamedShowsCount = 0;
+    long archivePlayerDuration = 0;
+    long archivePlayerCount = 0;
     for (List<String> batch : videoIdBatches) {
       List<Video> videoDetails = YouTubeService.getVideoContentDetails(batch);
       for (Video v : videoDetails) {
         long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
-        totalDurationInSeconds += duration;
+        pastStreamedShowsDuration += duration;
+        pastStreamedShowsCount++;
 
         if (blacklistVideoIds.contains(v.getId()) == false) {
+          archivePlayerDuration += duration;
+          archivePlayerCount++;
           archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
         } else {
           logger.info("Skipping {} for the archive", v.getSnippet().getTitle());
@@ -255,7 +262,13 @@ public class YouTubeService {
       }
     }
 
-    logger.info("Total duration of archive in seconds is {}!!", totalDurationInSeconds);
+    logger.info("Total count of Efferalgang past streamed shows: {} shows", pastStreamedShowsCount);
+    logger.info("Total count of shows in the archive player:     {} shows", archivePlayerCount);
+    logger.info("Total duration of Efferalgang past streamed shows: {} hours",
+        RadioPlayerUtils.printDurationInHours(pastStreamedShowsDuration));
+    logger.info("Total duration of shows in the archive player:     {} hours",
+        RadioPlayerUtils.printDurationInHours(archivePlayerDuration));
+
     Collections.shuffle(archivedVideos);
 
     return archivedVideos;

@@ -95,4 +95,8 @@ public class RadioPlayerUtils {
     Instant instant = Instant.ofEpochSecond(dt.getValue() / 1000);
     return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
   }
+
+  public static String printDurationInHours(long seconds) {
+    return String.format("%.2f", (seconds / 3600f));
+  }
 }
