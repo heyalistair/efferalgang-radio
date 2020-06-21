@@ -1,5 +1,6 @@
 package com.alistairj.frlgang.player;
 
+import static com.alistairj.frlgang.YouTubeService.EFFERALGANG_RADIO_CHANNEL_ID;
 import static com.alistairj.frlgang.player.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
 import static com.alistairj.frlgang.player.RadioPlayerUtils.isUpcomingVideoPending;
 import static com.alistairj.frlgang.player.RadioPlayerUtils.printUpcomingShows;
@@ -12,6 +13,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -210,6 +212,32 @@ public class LivePlayer {
         rp.setStatusLive();
       }
     }
+  }
+
+  public boolean checkVideoId(String videoId) throws IOException {
+
+    List<Video> videos = YouTubeService.getVideoDetails(Collections.singletonList(videoId));
+
+    if (videos.isEmpty()) {
+      throw new IOException("I can't find " + videoId);
+    }
+
+    Video v = videos.get(0);
+
+    if (v.getSnippet().getChannelId().equals(EFFERALGANG_RADIO_CHANNEL_ID) == false) {
+      throw new IOException("I can't find " + videoId);
+    }
+
+    boolean found = this.upcomingVideos.stream().anyMatch(x -> x.getId().equals(v.getId()));
+
+    // already known to the player
+    if (found || this.currentLiveVideo.getId().equals(v.getId())) {
+      return false;
+    }
+
+    fetchBroadcastStatusOfRelevantIds(Collections.singleton(v.getId()));
+
+    return true;
   }
 
   /**

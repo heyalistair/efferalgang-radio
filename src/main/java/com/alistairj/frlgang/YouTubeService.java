@@ -29,7 +29,7 @@ public class YouTubeService {
 
   private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-  private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
   //private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
 
   private static final List<String> blacklistVideoIds = new ArrayList<>();

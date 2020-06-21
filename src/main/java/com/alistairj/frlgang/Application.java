@@ -1,5 +1,7 @@
 package com.alistairj.frlgang;
 
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
 import com.alistairj.frlgang.player.RadioPlayer;
 import com.alistairj.frlgang.player.archive.ArchivePlayer;
 import java.io.IOException;
@@ -13,7 +15,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -54,6 +58,22 @@ public class Application {
   @RequestMapping("/queue")
   public ArchivePlayer getArchiveQueue(HttpServletResponse response) {
     return radioPlayer.getArchivePlayer();
+  }
+
+  @CrossOrigin
+  @RequestMapping(value = "/track/{video_id}", method = POST)
+  @ResponseBody
+  public String trackVideo(@PathVariable("video_id") String videoId) throws IOException {
+
+    logger.info("Checking video_id:{}", videoId);
+
+    boolean success = radioPlayer.getLivePlayer().checkVideoId(videoId);
+
+    if (success) {
+      return "{\"video_id\": \"" + videoId + "\", \"is_new_video_added\": true}";
+    } else {
+      return "{\"video_id\": \"" + videoId + "\", \"is_new_video_added\": false}";
+    }
   }
 
   /**
