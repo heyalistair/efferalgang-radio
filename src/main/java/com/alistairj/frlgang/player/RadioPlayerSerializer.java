@@ -79,5 +79,10 @@ public class RadioPlayerSerializer extends StdSerializer<RadioPlayer> {
     g.writeStringField("title", v.getSnippet().getTitle());
     g.writeStringField("scheduled_at",
         v.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339());
+    g.writeObjectFieldStart("thumbnail");
+    g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
+    g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
+    g.writeNumberField("h", v.getSnippet().getThumbnails().getStandard().getHeight());
+    g.writeEndObject();
   }
 }

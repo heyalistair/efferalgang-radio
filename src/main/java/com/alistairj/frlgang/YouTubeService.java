@@ -255,7 +255,8 @@ public class YouTubeService {
         if (blacklistVideoIds.contains(v.getId()) == false) {
           archivePlayerDuration += duration;
           archivePlayerCount++;
-          archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration));
+          archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration,
+              v.getSnippet().getThumbnails().getStandard()));
         } else {
           logger.info("Skipping {} for the archive", v.getSnippet().getTitle());
         }

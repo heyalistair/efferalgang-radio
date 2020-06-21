@@ -1,5 +1,7 @@
 package com.alistairj.frlgang.player.archive;
 
+import com.google.api.services.youtube.model.Thumbnail;
+
 /**
  * Video object that also includes duration in seconds.
  *
@@ -7,16 +9,19 @@ package com.alistairj.frlgang.player.archive;
  */
 public class ArchivedVideo {
 
-  private String id;
+  private final String id;
 
-  private String title;
+  private final String title;
 
-  private long durationInSeconds;
+  private final long durationInSeconds;
 
-  public ArchivedVideo(String id, String title, long durationInSeconds) {
+  private final Thumbnail thumbnail;
+
+  public ArchivedVideo(String id, String title, long durationInSeconds, Thumbnail thumbnail) {
     this.id = id;
     this.title = title;
     this.durationInSeconds = durationInSeconds;
+    this.thumbnail = thumbnail;
   }
 
   public String getId() {
@@ -29,5 +34,9 @@ public class ArchivedVideo {
 
   public long getDurationInSeconds() {
     return durationInSeconds;
+  }
+
+  public Thumbnail getThumbnail() {
+    return thumbnail;
   }
 }
