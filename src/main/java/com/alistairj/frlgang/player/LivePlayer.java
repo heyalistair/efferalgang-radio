@@ -1,9 +1,9 @@
 package com.alistairj.frlgang.player;
 
 import static com.alistairj.frlgang.YouTubeService.EFFERALGANG_RADIO_CHANNEL_ID;
-import static com.alistairj.frlgang.player.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
-import static com.alistairj.frlgang.player.RadioPlayerUtils.isUpcomingVideoPending;
-import static com.alistairj.frlgang.player.RadioPlayerUtils.printUpcomingShows;
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.isUpcomingVideoPending;
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.printUpcomingShows;
 
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
@@ -214,7 +214,7 @@ public class LivePlayer {
     }
   }
 
-  public boolean checkVideoId(String videoId) throws IOException {
+  private Video fetchVideo(String videoId) throws IOException {
 
     List<Video> videos = YouTubeService.getVideoDetails(Collections.singletonList(videoId));
 
@@ -228,16 +228,29 @@ public class LivePlayer {
       throw new IOException("I can't find " + videoId);
     }
 
-    boolean found = this.upcomingVideos.stream().anyMatch(x -> x.getId().equals(v.getId()));
+    return v;
+  }
+
+  public FoundVideo checkVideoId(String videoId) throws IOException {
+
+    Video v = fetchVideo(videoId);
+
+    boolean foundInUpcoming = upcomingVideos.stream().anyMatch(x -> x.getId().equals(v.getId()));
+    boolean foundAsLive = currentLiveVideo != null && currentLiveVideo.getId().equals(v.getId());
 
     // already known to the player
-    if (found || this.currentLiveVideo.getId().equals(v.getId())) {
-      return false;
+    FoundVideo fv;
+    if (foundInUpcoming || foundAsLive) {
+      fv = new FoundVideo(v, false);
+    } else {
+      fv = new FoundVideo(v, true);
+
+      Set<String> show = new HashSet<>();
+      show.add(v.getId());
+      fetchBroadcastStatusOfRelevantIds(show);
     }
 
-    fetchBroadcastStatusOfRelevantIds(Collections.singleton(v.getId()));
-
-    return true;
+    return fv;
   }
 
   /**

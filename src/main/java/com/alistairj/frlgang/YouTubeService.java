@@ -2,7 +2,7 @@ package com.alistairj.frlgang;
 
 import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
 
-import com.alistairj.frlgang.player.RadioPlayerUtils;
+import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -29,8 +29,8 @@ public class YouTubeService {
 
   private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
-  //private static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
+  //public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w";
 
   private static final List<String> blacklistVideoIds = new ArrayList<>();
 

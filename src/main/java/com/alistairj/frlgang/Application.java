@@ -2,7 +2,9 @@ package com.alistairj.frlgang;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import com.alistairj.frlgang.player.FoundVideo;
 import com.alistairj.frlgang.player.RadioPlayer;
+import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivePlayer;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -63,17 +65,15 @@ public class Application {
   @CrossOrigin
   @RequestMapping(value = "/track/{video_id}", method = POST)
   @ResponseBody
-  public String trackVideo(@PathVariable("video_id") String videoId) throws IOException {
+  public FoundVideo trackVideo(@PathVariable("video_id") String videoIdOrUrl) throws IOException {
 
-    logger.info("Checking video_id:{}", videoId);
+    logger.info("Checking video_id:{}", videoIdOrUrl);
 
-    boolean success = radioPlayer.getLivePlayer().checkVideoId(videoId);
+    String videoId = RadioPlayerUtils.parseVideoId(videoIdOrUrl);
 
-    if (success) {
-      return "{\"video_id\": \"" + videoId + "\", \"is_new_video_added\": true}";
-    } else {
-      return "{\"video_id\": \"" + videoId + "\", \"is_new_video_added\": false}";
-    }
+    FoundVideo fv = radioPlayer.getLivePlayer().checkVideoId(videoId);
+
+    return fv;
   }
 
   /**
@@ -83,7 +83,6 @@ public class Application {
   public void fetchUpcomingAndLiveShowIds() {
     radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
-
 
   @Scheduled(cron = "15 0,1,2,3,4,5,6,7,8,9 * ? * *")
   public void fetchBroadcastStatusOfRelevantIdsEspeciallyForLiveStarts() {

@@ -1,5 +1,7 @@
 package com.alistairj.frlgang.player;
 
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.writeVideoInfo;
+
 import com.alistairj.frlgang.player.archive.ArchivePlayer;
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -74,15 +76,5 @@ public class RadioPlayerSerializer extends StdSerializer<RadioPlayer> {
     g.writeEndObject();
   }
 
-  private static void writeVideoInfo(JsonGenerator g, Video v) throws IOException {
-    g.writeStringField("id", v.getId());
-    g.writeStringField("title", v.getSnippet().getTitle());
-    g.writeStringField("scheduled_at",
-        v.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339());
-    g.writeObjectFieldStart("thumbnail");
-    g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
-    g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
-    g.writeNumberField("h", v.getSnippet().getThumbnails().getStandard().getHeight());
-    g.writeEndObject();
-  }
+
 }
