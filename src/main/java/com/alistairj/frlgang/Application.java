@@ -7,6 +7,7 @@ import com.alistairj.frlgang.player.RadioPlayer;
 import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivePlayer;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Random;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -63,13 +65,20 @@ public class Application {
   }
 
   @CrossOrigin
-  @RequestMapping(value = "/track/{video_id}", method = POST)
+  @RequestMapping(value = "/track", method = POST)
   @ResponseBody
-  public FoundVideo trackVideo(@PathVariable("video_id") String videoIdOrUrl) throws IOException {
+  public FoundVideo trackVideo(@RequestParam("video_id") String videoIdOrUrl) throws IOException {
 
-    logger.info("Checking video_id:{}", videoIdOrUrl);
+    logger.info("Encoded video_id_or_url:{}", videoIdOrUrl);
 
-    String videoId = RadioPlayerUtils.parseVideoId(videoIdOrUrl);
+    String videoIdOrUrlDecoded = URLDecoder.decode(videoIdOrUrl, "UTF-8");
+
+    String videoId = RadioPlayerUtils.parseVideoId(videoIdOrUrlDecoded);
+
+    logger.info("Checking video_id:{}", videoId);
+    if (videoId.isEmpty()) {
+      throw new IOException("I don't even understand this show id");
+    }
 
     FoundVideo fv = radioPlayer.getLivePlayer().checkVideoId(videoId);
 
