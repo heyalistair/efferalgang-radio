@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,8 +64,14 @@ public class RadioPlayerUtils {
   public static void writeVideoInfo(JsonGenerator g, Video v) throws IOException {
     g.writeStringField("id", v.getId());
     g.writeStringField("title", v.getSnippet().getTitle());
-    g.writeStringField("scheduled_at",
-        v.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339());
+    try {
+      g.writeStringField("scheduled_at",
+          v.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339());
+    } catch (NullPointerException e) {
+      g.writeStringField("scheduled_at", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+          .format(new Date()));
+    }
+
     g.writeObjectFieldStart("thumbnail");
     g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
     g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
