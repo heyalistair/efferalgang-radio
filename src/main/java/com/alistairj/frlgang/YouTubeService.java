@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
  * Fetch information from YouTube.
  * <p>
  * Note the default quota is 10,000 per day.
+ * </p>
  *
  * @author Alistair Jones (alistair@ohalo.co)
  */
@@ -113,6 +114,25 @@ public class YouTubeService {
   public static List<Video> getUpcomingShowDetails(Collection<String> videoIds)
       throws IOException {
 
+    if (videoIds == null || videoIds.size() == 0) {
+      return new ArrayList<>();
+    }
+
+    if (videoIds.size() > 50) {
+      logger.warn("Video content list is too big to fetch in one call, trimming video id list...");
+      Collection<String> trimmedVideoIds = new ArrayList<>();
+
+      for (String id: videoIds) {
+        trimmedVideoIds.add(id);
+
+        if (trimmedVideoIds.size() >= 50) {
+          break;
+        }
+      }
+
+      videoIds = trimmedVideoIds;
+    }
+
     YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
 
@@ -162,6 +182,8 @@ public class YouTubeService {
           break;
         }
       }
+
+      videoIds = trimmedVideoIds;
     }
 
     YouTube youtubeService = getYouTubeApi();
@@ -200,7 +222,7 @@ public class YouTubeService {
 
     boolean moreArchiveRemaining = true;
 
-    do {
+//    do {
       SearchListResponse response = request.execute();
 
       List<String> videoIds = new ArrayList<>();
@@ -216,7 +238,7 @@ public class YouTubeService {
         moreArchiveRemaining = false;
       }
 
-    } while (moreArchiveRemaining);
+//    } while (moreArchiveRemaining);
 
     logger.info("Fetched {} batches of past shows", videoIdBatches.size());
 
