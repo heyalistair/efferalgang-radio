@@ -5,6 +5,7 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -102,7 +103,7 @@ public class RadioPlayerUtils {
       return null;
     }
 
-    for (Video v: upcomingList) {
+    for (Video v : upcomingList) {
       DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
       ZonedDateTime scheduled = getDateTime(dt);
       ZonedDateTime now = ZonedDateTime.now();
@@ -136,7 +137,55 @@ public class RadioPlayerUtils {
     return d1.isAfter(d2);
   }
 
-  private static ZonedDateTime getDateTime(DateTime dt) {
+  /**
+   * Has a live video ended. It must have at least the "liveStreamingDetails" and "contentDetails"
+   * defined.
+   *
+   * @param v Video to check
+   * @return true if it has ended.
+   */
+  public static boolean hasLiveVideoEnded(Video v) {
+
+    if (v.getContentDetails().getDuration().equals("P0D")) {  // it is a live stream
+
+      return v.getLiveStreamingDetails().getActualEndTime() != null;
+
+    } else { // it is a premiere or the weird direct livestream bug in youtube
+
+      if (v.getLiveStreamingDetails().getActualEndTime() != null) {
+        return true;
+      }
+
+      logger.debug("Checking premiere video id:{} to see if it has ended", v.getSnippet().getTitle());
+      DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
+      long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
+
+      // + 2 minutes because of youtube's cheesy countdown
+      ZonedDateTime scheduledEndTime = getDateTime(dt).plusMinutes(2L).plusSeconds(duration);
+      ZonedDateTime now = ZonedDateTime.now();
+
+      return now.isAfter(scheduledEndTime);
+    }
+  }
+
+  public static boolean isVideoLive(Video v) {
+
+    if (v.getContentDetails().getDuration().equals("P0D")) {  // it is a live stream
+
+      return v.getLiveStreamingDetails().getActualStartTime() != null;
+
+    } else { // it is a premiere
+
+      DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
+
+      ZonedDateTime now = ZonedDateTime.now();
+      ZonedDateTime scheduledStartTime = getDateTime(dt);
+
+      return now.isAfter(scheduledStartTime);
+    }
+  }
+
+  public static ZonedDateTime getDateTime(DateTime dt) {
     Instant instant = Instant.ofEpochSecond(dt.getValue() / 1000);
     return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
   }

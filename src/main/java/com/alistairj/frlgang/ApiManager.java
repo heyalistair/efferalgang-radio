@@ -32,6 +32,8 @@ public class ApiManager {
 
   private static boolean isArchivePlaylistActive = false;
 
+  private static String uploadPlaylistId;
+
   private static int currentIndex = 0;
 
   /**
@@ -82,6 +84,10 @@ public class ApiManager {
         .build();
 
     ApiManager.channelId = channelId;
+
+    // actually use the channel id to get the upload playlist id
+    uploadPlaylistId = YouTubeService.getUploadPlaylistId();
+    logger.info("Found upload playlist id: {}", uploadPlaylistId);
   }
 
   /**
@@ -104,4 +110,9 @@ public class ApiManager {
   public static String getArchivePlaylistId() {
     return archivePlaylistId;
   }
+
+  public static String getUploadPlaylistId() {
+    return uploadPlaylistId;
+  }
+
 }

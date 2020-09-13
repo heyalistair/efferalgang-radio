@@ -1,7 +1,9 @@
 package com.alistairj.frlgang.player;
 
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.hasLiveVideoEnded;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.isUpcomingVideoPending;
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.isVideoLive;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.printUpcomingShows;
 
 import com.alistairj.frlgang.ApiManager;
@@ -86,10 +88,13 @@ public class LivePlayer {
       Video current = null;
       List<Video> upcomers = new ArrayList<>();
       for (Video v : videos) {
-        if (v.getLiveStreamingDetails().getActualEndTime() != null) {
+
+        if (hasLiveVideoEnded(v)) {
+
           // it ended! It's no longer live, and we don't have to monitor it
           unverifiedVideoIds.remove(v.getId());
-        } else if (v.getLiveStreamingDetails().getActualStartTime() != null) {
+
+        } else if (isVideoLive(v)) {
           // here it has a start time and no end time - It's live!
           if (current != null) {
             if (isFirstVideoScheduledAfterSecond(v, current)) {

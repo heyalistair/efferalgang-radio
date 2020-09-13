@@ -1,10 +1,14 @@
 package com.alistairj.frlgang;
 
 import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
+import static com.alistairj.frlgang.utils.RadioPlayerUtils.getDateTime;
 
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.alistairj.frlgang.utils.RadioPlayerUtils;
+import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.Channel;
+import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItem;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -13,6 +17,7 @@ import com.google.api.services.youtube.model.Video;
 import com.google.api.services.youtube.model.VideoListResponse;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,8 +63,8 @@ public class YouTubeService {
    */
   public static Set<String> getCurrentAndUpcomingLiveShowIds() throws IOException {
     YouTube youtubeService = getYouTubeApi();
-    // Define and execute the API request
 
+    // get all live videos
     YouTube.Search.List request = youtubeService.search()
         .list("id");
     SearchListResponse response = request
@@ -75,6 +80,7 @@ public class YouTubeService {
       videoIds.add(result.getId().getVideoId());
     }
 
+    // get all upcoming livestreamVideos videos
     request = youtubeService.search()
         .list("id");
     response = request
@@ -87,6 +93,9 @@ public class YouTubeService {
     for (SearchResult result : response.getItems()) {
       videoIds.add(result.getId().getVideoId());
     }
+
+    // get all upcoming premiere videos
+    videoIds.addAll(getUpcomingPremieres());
 
     return videoIds;
   }
@@ -136,7 +145,7 @@ public class YouTubeService {
     // Define and execute the API request
 
     YouTube.Videos.List request = youtubeService.videos()
-        .list("liveStreamingDetails,snippet");
+        .list("liveStreamingDetails,contentDetails,snippet");
 
     VideoListResponse response = request
         .setId(String.join(",", videoIds))
@@ -212,6 +221,88 @@ public class YouTubeService {
     } else {
       return getCompletedShowsUsingChannelSearch();
     }
+  }
+
+  /**
+   * Get upload playlist id of a channel
+   *
+   * @returns upload playlist id for channel or null if unsuccessful.
+   */
+  public static String getUploadPlaylistId() throws IOException {
+
+    YouTube youtubeService = getYouTubeApi();
+
+    YouTube.Channels.List request = youtubeService.channels()
+        .list("contentDetails");
+    ChannelListResponse response = request.setId(ApiManager.getChannelId()).execute();
+    List<Channel> channelList = response.getItems();
+
+    if (channelList.size() > 0) {
+      return channelList.get(0).getContentDetails().getRelatedPlaylists().getUploads();
+    } else {
+      return null;
+    }
+  }
+
+  public static List<String> getUpcomingPremieres() throws IOException {
+
+    List<List<String>> videoIdBatches = new ArrayList<>();
+
+    YouTube youtubeService = getYouTubeApi();
+
+    YouTube.PlaylistItems.List request = youtubeService.playlistItems()
+        .list("contentDetails,snippet");
+
+    boolean moreArchiveRemaining = true;
+
+    do {
+      PlaylistItemListResponse response =
+          request
+              .setMaxResults(50L)
+              .setPlaylistId(ApiManager.getUploadPlaylistId())
+              .execute();
+
+      List<String> videoIds = new ArrayList<>();
+      for (PlaylistItem item : response.getItems()) {
+        videoIds.add(item.getContentDetails().getVideoId());
+      }
+
+      videoIdBatches.add(videoIds);
+
+      if (response.getNextPageToken() != null) {
+        request.setPageToken(response.getNextPageToken());
+      } else {
+        moreArchiveRemaining = false;
+      }
+
+    } while (moreArchiveRemaining);
+
+    logger.info("Fetched {} batches of upcoming premiere shows", videoIdBatches.size());
+
+    List<String> upcomingPremiereIds = new ArrayList<>();
+
+    for (List<String> batch : videoIdBatches) {
+
+      List<Video> videoDetails = YouTubeService.getUpcomingShowDetails(batch);
+
+      for (Video v : videoDetails) {
+
+        DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
+
+        if (dt != null) {
+          ZonedDateTime now = ZonedDateTime.now();
+          ZonedDateTime scheduled = getDateTime(dt);
+
+          if (now.isBefore(scheduled)) {
+            logger.debug("FOUND UPCOMING PREMIERE VIDEO: {} ", v.getSnippet().getTitle());
+            upcomingPremiereIds.add(v.getId());
+          }
+        }
+      }
+    }
+
+    return upcomingPremiereIds;
+
   }
 
   /**
