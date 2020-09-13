@@ -119,8 +119,19 @@ public class RadioPlayerUtils {
 
   public static boolean isFirstVideoScheduledAfterSecond(Video v1, Video v2) {
 
-    ZonedDateTime d1 = getDateTime(v1.getLiveStreamingDetails().getScheduledStartTime());
-    ZonedDateTime d2 = getDateTime(v2.getLiveStreamingDetails().getScheduledStartTime());
+    DateTime video1time = v1.getLiveStreamingDetails().getScheduledStartTime();
+    DateTime video2time = v2.getLiveStreamingDetails().getScheduledStartTime();
+
+    if (video1time == null) {
+      return false;
+    }
+
+    if (video2time == null) {
+      return true;
+    }
+
+    ZonedDateTime d1 = getDateTime(video1time);
+    ZonedDateTime d2 = getDateTime(video2time);
 
     return d1.isAfter(d2);
   }
