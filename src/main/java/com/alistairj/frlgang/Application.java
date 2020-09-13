@@ -30,9 +30,9 @@ public class Application {
 
   private static Logger logger = LoggerFactory.getLogger(Application.class);
 
-  private static final String ARG_PARAM = "API_KEY=";
-  private static final String ARG_PARAM_2 = "FRONTEND_HOST=";
-  private static final String ARG_PARAM_3 = "CHANNEL_ID=";
+  private static final String ARG_PARAM_0 = "API_KEY=";
+  private static final String ARG_PARAM_1 = "FRONTEND_HOST=";
+  private static final String ARG_PARAM_2 = "CHANNEL_ID=";
   private static final String ARG_PARAM_4 = "ARCHIVE_PLAYLIST_ID=";
 
   private static String frontendUrl = "";
@@ -110,13 +110,12 @@ public class Application {
    * @param args YouTube API key
    */
   public static void main(String[] args) throws GeneralSecurityException, IOException {
-    for (String s : args) {
-      logger.info(s);
-    }
 
-    frontendUrl = args[1].substring(ARG_PARAM_2.length());
+    validateCommandLineParameters(args);
 
-    String youtubeApiKey = args[0].substring(ARG_PARAM.length());
+    frontendUrl = args[1].substring(ARG_PARAM_1.length());
+
+    String youtubeApiKey = args[0].substring(ARG_PARAM_0.length());
     String youtubeChannelId = args[2].substring(ARG_PARAM_2.length());
 
     ApiManager.initialize(youtubeApiKey, youtubeChannelId);
@@ -128,13 +127,16 @@ public class Application {
   }
 
   private static void validateCommandLineParameters(String[] args) {
+    for (String s : args) {
+      logger.info("Command line args are: {}", s);
+    }
 
     boolean isValid = args.length == 3 || args.length == 4;
 
     if (isValid) {
-      isValid = args[0].startsWith(ARG_PARAM)
-          && args[1].startsWith(ARG_PARAM_2)
-          && args[2].startsWith(ARG_PARAM_3);
+      isValid = args[0].startsWith(ARG_PARAM_0)
+          && args[1].startsWith(ARG_PARAM_1)
+          && args[2].startsWith(ARG_PARAM_2);
     }
 
     if (isValid) {
@@ -151,10 +153,9 @@ public class Application {
       logger.error("Run with"
           + "API_KEY=<YOUR_YOUTUBE_API_KEY>,"
           + "FRONTEND_HOST=<URL OF FRONTEND>,"
-          + "CHANNEL=<YOUR_CHANNEL_ID>,"
+          + "CHANNEL_ID=<YOUR_CHANNEL_ID>,"
           + "ARCHIVE_PLAYLIST_ID=<YOUR_CHANNEL_ID>'");
       System.exit(1);
     }
   }
-
 }
