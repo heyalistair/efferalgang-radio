@@ -19,6 +19,8 @@ bootRun {
     if (project.hasProperty('args')) {
         args project.args.split(',')
     }
+
+    systemProperties = System.properties
 }
 
 dependencies {

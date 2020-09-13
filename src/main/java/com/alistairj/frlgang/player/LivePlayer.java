@@ -87,7 +87,7 @@ public class LivePlayer {
       List<Video> upcomers = new ArrayList<>();
       for (Video v : videos) {
         if (v.getLiveStreamingDetails().getActualEndTime() != null) {
-          // it ended! It's no longer live
+          // it ended! It's no longer live, and we don't have to monitor it
           unverifiedVideoIds.remove(v.getId());
         } else if (v.getLiveStreamingDetails().getActualStartTime() != null) {
           // here it has a start time and no end time - It's live!
