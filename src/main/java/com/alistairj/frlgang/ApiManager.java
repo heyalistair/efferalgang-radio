@@ -45,7 +45,7 @@ public class ApiManager {
   public static void initialize(String key, String channelId)
       throws GeneralSecurityException, IOException {
 
-    logger.debug("Initializing API service with key '{}'", key);
+    logger.debug("Initializing API service with key '{}' and channelId '{}'", key, channelId);
 
     final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
@@ -54,6 +54,7 @@ public class ApiManager {
         .setYouTubeRequestInitializer(new YouTubeRequestInitializer(key))
         .build();
 
+    ApiManager.channelId = channelId;
 
   }
 
