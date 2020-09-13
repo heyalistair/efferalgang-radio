@@ -27,9 +27,9 @@ public class RadioPlayerUtils {
   private static final String DEFAULT_IMG =
       "https://img.discogs.com/oAOHL8Zan84rK6JiRUs60breU68=/fit-in/600x601/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-3471433-1331680516.jpeg.jpg";
 
-  private static final int UPCOMING_WAIT_START_BEFORE_MINUTES = 5;
+  private static final int UPCOMING_START_BEFORE_MINUTES = 5;
 
-  private static final int UPCOMING_WAIT_TIME_END_AFTER_MINUTES = 10;
+  private static final int UPCOMING_END_AFTER_MINUTES = 10;
 
   private RadioPlayerUtils() {
     // private constructor
@@ -102,16 +102,15 @@ public class RadioPlayerUtils {
       return null;
     }
 
-    if (upcomingList.size() > 0) {
-
-      DateTime dt = upcomingList.get(0).getLiveStreamingDetails().getScheduledStartTime();
+    for (Video v: upcomingList) {
+      DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
       ZonedDateTime scheduled = getDateTime(dt);
       ZonedDateTime now = ZonedDateTime.now();
-      ZonedDateTime fiveMinutesAgo = now.minusMinutes(UPCOMING_WAIT_START_BEFORE_MINUTES);
-      ZonedDateTime inTenMinutes = now.plusMinutes(UPCOMING_WAIT_TIME_END_AFTER_MINUTES);
+      ZonedDateTime fiveMinutesBefore = scheduled.minusMinutes(UPCOMING_START_BEFORE_MINUTES);
+      ZonedDateTime fiveMinutesAfter = scheduled.plusMinutes(UPCOMING_END_AFTER_MINUTES);
 
-      if (scheduled.isBefore(inTenMinutes) && scheduled.isAfter(fiveMinutesAgo)) {
-        return upcomingList.get(0);
+      if (now.isBefore(fiveMinutesAfter) && now.isAfter(fiveMinutesBefore)) {
+        return v;
       }
     }
 
