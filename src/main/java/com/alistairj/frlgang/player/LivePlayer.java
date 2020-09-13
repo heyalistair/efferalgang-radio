@@ -81,7 +81,7 @@ public class LivePlayer {
       logger.info("Getting information for {} ids: {}", unverifiedVideoIds.size(),
           String.join(",", unverifiedVideoIds));
 
-      List<Video> videos = YouTubeService.getVideoDetails(unverifiedVideoIds);
+      List<Video> videos = YouTubeService.getUpcomingShowDetails(unverifiedVideoIds);
 
       Video current = null;
       List<Video> upcomers = new ArrayList<>();
@@ -137,9 +137,9 @@ public class LivePlayer {
    */
   @Deprecated
   public void fetchLiveShowStatus() {
-    List<String> currentLiveIds;
+    Set<String> currentLiveIds;
     try {
-      currentLiveIds = YouTubeService.getCurrentLiveShows();
+      currentLiveIds = YouTubeService.getCurrentAndUpcomingLiveShowIds();
     } catch (IOException e) {
       logger.error("Unable to get current live shows!", e);
       return;
@@ -166,7 +166,7 @@ public class LivePlayer {
           // oh god, more than one this is live! Figure out which one should be the canonical live
 
           List<Video> currentLives;
-          currentLives = YouTubeService.getVideoDetails(currentLiveIds);
+          currentLives = YouTubeService.getUpcomingShowDetails(currentLiveIds);
 
           Video mostRecentlyScheduledLive = null;
           ZonedDateTime now = ZonedDateTime.now();
@@ -194,7 +194,7 @@ public class LivePlayer {
           }
 
         } else {
-          currentLive = YouTubeService.getVideoDetails(currentLiveIds).get(0);
+          currentLive = YouTubeService.getUpcomingShowDetails(currentLiveIds).get(0);
         }
       } catch (IOException e) {
         logger.error("Unable to get information about current live shows!", e);
@@ -216,7 +216,7 @@ public class LivePlayer {
 
   private Video fetchVideo(String videoId) throws IOException {
 
-    List<Video> videos = YouTubeService.getVideoDetails(Collections.singletonList(videoId));
+    List<Video> videos = YouTubeService.getUpcomingShowDetails(Collections.singletonList(videoId));
 
     if (videos.isEmpty()) {
       throw new IOException("I can't find " + videoId);
@@ -261,8 +261,8 @@ public class LivePlayer {
     List<Video> fetchedVideos = new ArrayList<>();
 
     try {
-      List<String> currentUpcomingIds = YouTubeService.getUpcomingShows();
-      fetchedVideos = YouTubeService.getVideoDetails(currentUpcomingIds);
+      List<String> currentUpcomingIds = YouTubeService.getUpcomingShowIds();
+      fetchedVideos = YouTubeService.getUpcomingShowDetails(currentUpcomingIds);
     } catch (IOException e) {
       logger.error("Unable to get upcoming live shows!", e);
     }

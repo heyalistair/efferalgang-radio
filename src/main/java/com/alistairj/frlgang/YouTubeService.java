@@ -2,8 +2,8 @@ package com.alistairj.frlgang;
 
 import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
 
-import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
+import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Fetch information from YouTube.
+ * <p>
+ * Note the default quota is 10,000 per day.
  *
  * @author Alistair Jones (alistair@ohalo.co)
  */
@@ -48,6 +50,11 @@ public class YouTubeService {
 
   /**
    * Fetch all upcoming and live show ids.
+   *
+   * <p>
+   * EXECUTED: once an hour
+   * COST: 100 x 2
+   * </p>
    */
   public static Set<String> getCurrentAndUpcomingLiveShowIds() throws IOException {
     YouTube youtubeService = getYouTubeApi();
@@ -80,66 +87,6 @@ public class YouTubeService {
     for (SearchResult result : response.getItems()) {
       videoIds.add(result.getId().getVideoId());
     }
-    return videoIds;
-  }
-
-
-  /**
-   * Fetch current live show.
-   */
-  public static List<String> getCurrentLiveShows() throws IOException {
-
-    YouTube youtubeService = getYouTubeApi();
-    // Define and execute the API request
-
-    YouTube.Search.List request = youtubeService.search()
-        .list("id");
-    SearchListResponse response = request
-        .setMaxResults(10L)
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
-        .setType("video")
-        .setEventType("live")
-        .execute();
-
-    List<String> videoIds = new ArrayList<>();
-
-    for (SearchResult result : response.getItems()) {
-      videoIds.add(result.getId().getVideoId());
-    }
-
-    logger.info("Fetched current live shows, count:{}", videoIds.size());
-
-    return videoIds;
-  }
-
-  /**
-   * Search for upcoming shows.
-   *
-   * @return List of found upcoming shows
-   * @throws IOException Thrown if there is an issue with the YouTube API
-   */
-  public static List<String> getUpcomingShows() throws IOException {
-
-    YouTube youtubeService = getYouTubeApi();
-    // Define and execute the API request
-
-    YouTube.Search.List request = youtubeService.search()
-        .list("id");
-    SearchListResponse response = request
-        .setMaxResults(5L)
-        .setOrder("date")
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
-        .setType("video")
-        .setEventType("upcoming")
-        .execute();
-
-    List<String> videoIds = new ArrayList<>();
-
-    for (SearchResult result : response.getItems()) {
-      videoIds.add(result.getId().getVideoId());
-    }
-
-    logger.info("Fetched current upcoming shows, count:{}", videoIds.size());
 
     return videoIds;
   }
@@ -148,15 +95,25 @@ public class YouTubeService {
    * Get information for multiple videos.
    *
    * <p>
-   * Useful for upcoming videos because it fetches the livestreaming details.
-   * TODO: At the moment, this only takes a maximum of 50.
+   * EXECUTED: once an hour
+   * COST: 1
+   * <p>
+   * -- and --
+   * EXECUTED: 37 times an hour (ideally as much as possible)
+   * COST: 1
+   * <p>
+   * -- and --
+   * EXECUTED: 1-2 times on track id call (if
+   * COST: 1
+   * <p>
+   * TOTAL COST 38-40 an hour.
    * </p>
    *
    * @param videoIds Collection of video ids to fetch more information about
    * @return List of Video object containing the goods.
    * @throws IOException Thrown if there is an issue with the YouTube API
    */
-  public static List<Video> getVideoDetails(Collection<String> videoIds)
+  public static List<Video> getUpcomingShowDetails(Collection<String> videoIds)
       throws IOException {
 
     YouTube youtubeService = getYouTubeApi();
@@ -179,7 +136,11 @@ public class YouTubeService {
    *
    * <p>
    * Useful for archived videos because it fetches the duration.
-   * TODO: At the moment, this only takes a maximum of 50.
+   * </p>
+   *
+   * <p>
+   * A known limitation is that it will only work on 50 ids at a time, but a channel will rarely
+   * have 50 live and upcoming livestreams registered so that's never an issue.
    * </p>
    *
    * @param videoIds Collection of video ids to fetch more information about
@@ -188,6 +149,23 @@ public class YouTubeService {
    */
   public static List<Video> getVideoContentDetails(Collection<String> videoIds)
       throws IOException {
+
+    if (videoIds == null || videoIds.size() == 0) {
+      return new ArrayList<>();
+    }
+
+    if (videoIds.size() > 50) {
+      logger.warn("Video content list is too big to fetch in one call, trimming video id list...");
+      Collection<String> trimmedVideoIds = new ArrayList<>();
+
+      for (String id: videoIds) {
+        trimmedVideoIds.add(id);
+
+        if (trimmedVideoIds.size() >= 50) {
+          break;
+        }
+      }
+    }
 
     YouTube youtubeService = getYouTubeApi();
     // Define and execute the API request
@@ -279,5 +257,38 @@ public class YouTubeService {
     Collections.shuffle(archivedVideos);
 
     return archivedVideos;
+  }
+
+  /**
+   * Search for upcoming shows.
+   *
+   * @return List of found upcoming shows
+   * @throws IOException Thrown if there is an issue with the YouTube API
+   */
+  @Deprecated
+  public static List<String> getUpcomingShowIds() throws IOException {
+
+    YouTube youtubeService = getYouTubeApi();
+    // Define and execute the API request
+
+    YouTube.Search.List request = youtubeService.search()
+        .list("id");
+    SearchListResponse response = request
+        .setMaxResults(5L)
+        .setOrder("date")
+        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setType("video")
+        .setEventType("upcoming")
+        .execute();
+
+    List<String> videoIds = new ArrayList<>();
+
+    for (SearchResult result : response.getItems()) {
+      videoIds.add(result.getId().getVideoId());
+    }
+
+    logger.info("Fetched current upcoming shows, count:{}", videoIds.size());
+
+    return videoIds;
   }
 }
