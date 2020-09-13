@@ -267,20 +267,19 @@ public class YouTubeService {
     long archivePlayerDuration = 0;
     long archivePlayerCount = 0;
     for (List<String> batch : videoIdBatches) {
+
       List<Video> videoDetails = YouTubeService.getVideoContentDetails(batch);
+
       for (Video v : videoDetails) {
         long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
         pastStreamedShowsDuration += duration;
         pastStreamedShowsCount++;
 
-        if (blacklistVideoIds.contains(v.getId()) == false) {
-          archivePlayerDuration += duration;
-          archivePlayerCount++;
-          archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration,
-              v.getSnippet().getThumbnails().getStandard()));
-        } else {
-          logger.info("Skipping {} for the archive", v.getSnippet().getTitle());
-        }
+        archivePlayerDuration += duration;
+        archivePlayerCount++;
+        archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration,
+            v.getSnippet().getThumbnails().getStandard()));
+
       }
     }
 
