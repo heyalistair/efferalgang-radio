@@ -24,6 +24,9 @@ public class RadioPlayerUtils {
 
   private static final Logger logger = LoggerFactory.getLogger(RadioPlayerUtils.class);
 
+  private static final String DEFAULT_IMG =
+      "https://img.discogs.com/oAOHL8Zan84rK6JiRUs60breU68=/fit-in/600x601/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-3471433-1331680516.jpeg.jpg";
+
   private static final int UPCOMING_WAIT_START_BEFORE_MINUTES = 5;
 
   private static final int UPCOMING_WAIT_TIME_END_AFTER_MINUTES = 10;
@@ -73,9 +76,17 @@ public class RadioPlayerUtils {
     }
 
     g.writeObjectFieldStart("thumbnail");
-    g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
-    g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
-    g.writeNumberField("h", v.getSnippet().getThumbnails().getStandard().getHeight());
+
+    try {
+      g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
+      g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
+      g.writeNumberField("h", v.getSnippet().getThumbnails().getStandard().getHeight());
+
+    } catch (NullPointerException e) {
+      g.writeStringField("url", DEFAULT_IMG);
+      g.writeNumberField("w", 600);
+      g.writeNumberField("h", 600);
+    }
     g.writeEndObject();
   }
 
@@ -124,7 +135,8 @@ public class RadioPlayerUtils {
     return String.format("%.2f", (seconds / 3600f));
   }
 
-  public static String YOUTUBE_URL_PATTERN = "(?<=watch\\?v=|/videos/|/video/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200B2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*";
+  public static String YOUTUBE_URL_PATTERN =
+      "(?<=watch\\?v=|/videos/|/video/|embed\\/|youtu.be\\/|\\/v\\/|\\/e\\/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%\u200C\u200B2F|youtu.be%2F|%2Fv%2F)[^#\\&\\?\\n]*";
   public static Pattern COMPILED_PATTERN = Pattern.compile(YOUTUBE_URL_PATTERN);
 
   /**
@@ -132,7 +144,7 @@ public class RadioPlayerUtils {
    *
    * <p>
    * It is based on
-   *
+   * <p>
    * Should handle:
    * http://www.youtube.com/watch?v=dQw4w9WgXcQ&a=GxdCwVVULXctT2lYDEPllDR0LRTutYfW
    * http://www.youtube.com/watch?v=dQw4w9WgXcQ
@@ -162,9 +174,10 @@ public class RadioPlayerUtils {
       return urlOrId;
     }
 
-    Matcher matcher = COMPILED_PATTERN.matcher(urlOrId); //url is youtube url for which you want to extract the id.
+    Matcher matcher = COMPILED_PATTERN
+        .matcher(urlOrId); //url is youtube url for which you want to extract the id.
     if (matcher.find()) {
-      return matcher.group().substring(0,11);
+      return matcher.group().substring(0, 11);
     }
 
     return "";
