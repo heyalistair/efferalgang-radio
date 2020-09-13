@@ -33,7 +33,7 @@ public class Application {
   private static final String ARG_PARAM_0 = "API_KEY=";
   private static final String ARG_PARAM_1 = "FRONTEND_HOST=";
   private static final String ARG_PARAM_2 = "CHANNEL_ID=";
-  private static final String ARG_PARAM_4 = "ARCHIVE_PLAYLIST_ID=";
+  private static final String ARG_PARAM_3 = "ARCHIVE_PLAYLIST_ID=";
 
   private static String frontendUrl = "";
 
@@ -118,7 +118,12 @@ public class Application {
     String youtubeApiKey = args[0].substring(ARG_PARAM_0.length());
     String youtubeChannelId = args[2].substring(ARG_PARAM_2.length());
 
-    ApiManager.initialize(youtubeApiKey, youtubeChannelId);
+    if (args.length == 4) {
+      String archivePlaylistId = args[3].substring(ARG_PARAM_3.length());
+      ApiManager.initialize(youtubeApiKey, youtubeChannelId, archivePlaylistId);
+    } else {
+      ApiManager.initialize(youtubeApiKey, youtubeChannelId);
+    }
 
     // create the radio player
     radioPlayer = new RadioPlayer();
@@ -139,11 +144,9 @@ public class Application {
           && args[2].startsWith(ARG_PARAM_2);
     }
 
-    if (isValid) {
-      if (args.length == 4) {
-        if (args[3].startsWith(ARG_PARAM_4) == false) {
-          isValid = false;
-        }
+    if (isValid && args.length == 4) {
+      if (args[3].startsWith(ARG_PARAM_3) == false) {
+        isValid = false;
       }
     }
 

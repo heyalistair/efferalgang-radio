@@ -30,11 +30,12 @@ public class ApiManager {
 
   private static String archivePlaylistId;
 
+  private static boolean isArchivePlaylistActive = false;
+
   private static int currentIndex = 0;
 
   /**
-   * Initializes a list of API client services, each initialized with an API key from the key
-   * string.
+   * Initializes API Manager.
    *
    * <p>
    * MUST BE CALLED FIRST.
@@ -42,8 +43,34 @@ public class ApiManager {
    *
    * @param key API key for the YouTube key
    */
+  public static void initialize(String key, String channelId, String archivePlaylistId)
+      throws GeneralSecurityException, IOException {
+
+    if (archivePlaylistId == null) {
+      throw new IllegalArgumentException();
+    }
+
+    logger.debug("Initializing archived playlist source: {}", archivePlaylistId);
+
+    ApiManager.archivePlaylistId = archivePlaylistId;
+    ApiManager.isArchivePlaylistActive = true;
+
+    ApiManager.initialize(key, channelId);
+
+  }
+
+  /**
+   * Initializes API Manager.
+   *
+   * @param key API key for the YouTube key
+   * @see #initialize(String, String, String)
+   */
   public static void initialize(String key, String channelId)
       throws GeneralSecurityException, IOException {
+
+    if (key == null || channelId == null) {
+      throw new IllegalArgumentException();
+    }
 
     logger.debug("Initializing API service with key '{}' and channelId '{}'", key, channelId);
 
@@ -55,11 +82,10 @@ public class ApiManager {
         .build();
 
     ApiManager.channelId = channelId;
-
   }
 
   /**
-   * Get a YouTube API to use.
+   * Get YouTube API to use.
    *
    * @return an authorized API client service
    */
@@ -69,5 +95,13 @@ public class ApiManager {
 
   public static String getChannelId() {
     return channelId;
+  }
+
+  public static boolean isArchivePlaylistActive() {
+    return isArchivePlaylistActive;
+  }
+
+  public static String getArchivePlaylistId() {
+    return archivePlaylistId;
   }
 }

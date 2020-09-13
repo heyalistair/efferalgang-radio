@@ -5,6 +5,8 @@ import static com.alistairj.frlgang.ApiManager.getYouTubeApi;
 import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Video;
@@ -31,9 +33,6 @@ import org.slf4j.LoggerFactory;
 public class YouTubeService {
 
   private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
-
-  //public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
-//  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w"; //test
 
   private static final List<String> blacklistVideoIds = new ArrayList<>();
 
@@ -122,7 +121,7 @@ public class YouTubeService {
       logger.warn("Video content list is too big to fetch in one call, trimming video id list...");
       Collection<String> trimmedVideoIds = new ArrayList<>();
 
-      for (String id: videoIds) {
+      for (String id : videoIds) {
         trimmedVideoIds.add(id);
 
         if (trimmedVideoIds.size() >= 50) {
@@ -175,7 +174,7 @@ public class YouTubeService {
       logger.warn("Video content list is too big to fetch in one call, trimming video id list...");
       Collection<String> trimmedVideoIds = new ArrayList<>();
 
-      for (String id: videoIds) {
+      for (String id : videoIds) {
         trimmedVideoIds.add(id);
 
         if (trimmedVideoIds.size() >= 50) {
@@ -201,10 +200,110 @@ public class YouTubeService {
     return response.getItems();
   }
 
+
   /**
-   * Fetch random completed show.
+   * Fetch completed show and randomize.
    */
   public static List<ArchivedVideo> getCompletedShows()
+      throws IOException {
+
+    if (ApiManager.isArchivePlaylistActive()) {
+      return getCompletedShowsUsingArchivePlaylist();
+    } else {
+      return getCompletedShowsUsingChannelSearch();
+    }
+  }
+
+  /**
+   * Fetch completed show and randomize.
+   *
+   * <p>
+   * Note that the playlistItem's contentDetails does not include duration so I have to get that
+   * with seperate batched calls for maximum efficiency.
+   * </p>
+   *
+   * @return List of ArchiveVideo shows
+   */
+  public static List<ArchivedVideo> getCompletedShowsUsingArchivePlaylist()
+      throws IOException {
+
+    List<List<String>> videoIdBatches = new ArrayList<>();
+
+    YouTube youtubeService = getYouTubeApi();
+
+    YouTube.PlaylistItems.List request = youtubeService.playlistItems()
+        .list("contentDetails,snippet");
+
+    boolean moreArchiveRemaining = true;
+
+    do {
+      PlaylistItemListResponse response =
+          request
+              .setMaxResults(50L)
+              .setPlaylistId(ApiManager.getArchivePlaylistId())
+              .execute();
+
+      List<String> videoIds = new ArrayList<>();
+      for (PlaylistItem item : response.getItems()) {
+        videoIds.add(item.getContentDetails().getVideoId());
+      }
+
+      videoIdBatches.add(videoIds);
+
+      if (response.getNextPageToken() != null) {
+        request.setPageToken(response.getNextPageToken());
+      } else {
+        moreArchiveRemaining = false;
+      }
+
+    } while (moreArchiveRemaining);
+
+    logger.info("Fetched {} batches of past shows", videoIdBatches.size());
+
+    List<ArchivedVideo> archivedVideos = new ArrayList<>();
+
+    long pastStreamedShowsDuration = 0;
+    long pastStreamedShowsCount = 0;
+    long archivePlayerDuration = 0;
+    long archivePlayerCount = 0;
+    for (List<String> batch : videoIdBatches) {
+      List<Video> videoDetails = YouTubeService.getVideoContentDetails(batch);
+      for (Video v : videoDetails) {
+        long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
+        pastStreamedShowsDuration += duration;
+        pastStreamedShowsCount++;
+
+        if (blacklistVideoIds.contains(v.getId()) == false) {
+          archivePlayerDuration += duration;
+          archivePlayerCount++;
+          archivedVideos.add(new ArchivedVideo(v.getId(), v.getSnippet().getTitle(), duration,
+              v.getSnippet().getThumbnails().getStandard()));
+        } else {
+          logger.info("Skipping {} for the archive", v.getSnippet().getTitle());
+        }
+      }
+    }
+
+    logger.info("Total count of Efferalgang past streamed shows: {} shows", pastStreamedShowsCount);
+    logger.info("Total count of shows in the archive player:     {} shows", archivePlayerCount);
+    logger.info("Total duration of Efferalgang past streamed shows: {} hours",
+        RadioPlayerUtils.printDurationInHours(pastStreamedShowsDuration));
+    logger.info("Total duration of shows in the archive player:     {} hours",
+        RadioPlayerUtils.printDurationInHours(archivePlayerDuration));
+
+    Collections.shuffle(archivedVideos);
+
+    return archivedVideos;
+  }
+
+  /**
+   * This is a very expensive way of building the backlog. Every call requires 100 quota. It doesn't
+   * always even produce the same results.
+   *
+   * @return List of ArchiveVideo shows
+   */
+  @Deprecated
+  public static List<ArchivedVideo> getCompletedShowsUsingChannelSearch()
       throws IOException {
 
     List<List<String>> videoIdBatches = new ArrayList<>();
@@ -222,7 +321,7 @@ public class YouTubeService {
 
     boolean moreArchiveRemaining = true;
 
-//    do {
+    do {
       SearchListResponse response = request.execute();
 
       List<String> videoIds = new ArrayList<>();
@@ -238,7 +337,7 @@ public class YouTubeService {
         moreArchiveRemaining = false;
       }
 
-//    } while (moreArchiveRemaining);
+    } while (moreArchiveRemaining);
 
     logger.info("Fetched {} batches of past shows", videoIdBatches.size());
 
