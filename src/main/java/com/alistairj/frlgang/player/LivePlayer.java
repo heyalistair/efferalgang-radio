@@ -58,7 +58,7 @@ public class LivePlayer {
    */
   public void fetchUpcomingAndLiveShowIds() {
     try {
-      logger.info("Getting information about relevant ids");
+      logger.trace("Getting information about relevant ids");
       Set<String> unverifiedVideoIds = YouTubeService.getCurrentAndUpcomingLiveShowIds();
       fetchBroadcastStatusOfRelevantIds(unverifiedVideoIds);
     } catch (IOException e) {

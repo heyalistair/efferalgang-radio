@@ -94,12 +94,7 @@ public class Application {
     radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
 
-  @Scheduled(cron = "15 0,1,2,3,4,5,6,7,8,9 * ? * *")
-  public void fetchBroadcastStatusOfRelevantIdsEspeciallyForLiveStarts() {
-    radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
-  }
-
-  @Scheduled(cron = "45 0,1,2,3,4,5,6,7,8,9,12,15,18,21,24,30,31,32,33,36,39,42,45,48,51,54,57 * ? * *")
+  @Scheduled(cron = "15,45 * * ? * *")
   public void fetchBroadcastStatusOfRelevantIds() {
     radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
   }

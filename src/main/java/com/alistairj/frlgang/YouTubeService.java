@@ -142,7 +142,7 @@ public class YouTubeService {
         .setId(String.join(",", videoIds))
         .execute();
 
-    logger.info("Fetched details about multiple videos, count:{}", videoIds.size());
+    logger.trace("Fetched details about multiple videos, count:{}", videoIds.size());
 
     return response.getItems();
   }
