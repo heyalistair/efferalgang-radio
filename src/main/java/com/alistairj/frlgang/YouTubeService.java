@@ -145,7 +145,12 @@ public class YouTubeService {
   }
 
   /**
+   * Get information for multiple videos.
+   *
+   * <p>
+   * Useful for upcoming videos because it fetches the livestreaming details.
    * TODO: At the moment, this only takes a maximum of 50.
+   * </p>
    *
    * @param videoIds Collection of video ids to fetch more information about
    * @return List of Video object containing the goods.
@@ -170,9 +175,10 @@ public class YouTubeService {
   }
 
   /**
-   * Useful for archived videos because it fetches the duration.
+   * Get information for multiple videos.
    *
    * <p>
+   * Useful for archived videos because it fetches the duration.
    * TODO: At the moment, this only takes a maximum of 50.
    * </p>
    *

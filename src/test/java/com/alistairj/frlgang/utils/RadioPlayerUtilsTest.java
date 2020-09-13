@@ -3,6 +3,7 @@ package com.alistairj.frlgang.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+
 /**
  * @author Alistair Jones (alistair@ohalo.co)
  */
@@ -25,5 +26,4 @@ public class RadioPlayerUtilsTest {
     String id = RadioPlayerUtils.parseVideoId("https://studio.youtube.com/video/WNMfvKiYtiw/livestreaming");
     Assert.assertEquals("WNMfvKiYtiw", id);
   }
-
 }
