@@ -8,10 +8,6 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.YouTubeRequestInitializer;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +24,11 @@ public class ApiManager {
 
   private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-  private static List<YouTube> youTubeAPIs = new ArrayList<>();
+  private static YouTube youTubeAPI;
+
+  private static String channelId;
+
+  private static String archivePlaylistId;
 
   private static int currentIndex = 0;
 
@@ -37,28 +37,24 @@ public class ApiManager {
    * string.
    *
    * <p>
-   *   MUST BE CALLED FIRST.
+   * MUST BE CALLED FIRST.
    * </p>
    *
-   * @param keyString List of keys separated by semi-colons.
+   * @param key API key for the YouTube key
    */
-  public static void initialize(String keyString) throws GeneralSecurityException, IOException {
-    List<String> keys = Arrays.asList(keyString.split(";"));
-    Collections.shuffle(keys);
+  public static void initialize(String key, String channelId)
+      throws GeneralSecurityException, IOException {
 
-    for (String key : keys) {
+    logger.debug("Initializing API service with key '{}'", key);
 
-      logger.debug("Initializing API service with key '{}'", key);
+    final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
-      final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+    youTubeAPI = new YouTube.Builder(httpTransport, JSON_FACTORY, null)
+        .setApplicationName(APPLICATION_NAME)
+        .setYouTubeRequestInitializer(new YouTubeRequestInitializer(key))
+        .build();
 
-      youTubeAPIs.add(new YouTube.Builder(httpTransport, JSON_FACTORY, null)
-          .setApplicationName(APPLICATION_NAME)
-          .setYouTubeRequestInitializer(new YouTubeRequestInitializer(key))
-          .build());
-    }
 
-    logger.info("Initialized {} YouTube services", youTubeAPIs.size());
   }
 
   /**
@@ -66,15 +62,11 @@ public class ApiManager {
    *
    * @return an authorized API client service
    */
-  public static synchronized YouTube getYouTubeApi() {
-    if (youTubeAPIs.isEmpty()) {
-      throw new IllegalStateException("ApiManager must be initialized with at least one API key.");
-    }
-
-    if (currentIndex >= youTubeAPIs.size()) {
-      currentIndex = 0;
-    }
-    return youTubeAPIs.get(currentIndex++);
+  public static YouTube getYouTubeApi() {
+    return youTubeAPI;
   }
 
+  public static String getChannelId() {
+    return channelId;
+  }
 }

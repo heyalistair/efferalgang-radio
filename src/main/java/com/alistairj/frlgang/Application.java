@@ -4,8 +4,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.alistairj.frlgang.player.FoundVideo;
 import com.alistairj.frlgang.player.RadioPlayer;
-import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import com.alistairj.frlgang.player.archive.ArchivePlayer;
+import com.alistairj.frlgang.utils.RadioPlayerUtils;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
@@ -18,7 +18,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,6 +32,8 @@ public class Application {
 
   private static final String ARG_PARAM = "API_KEY=";
   private static final String ARG_PARAM_2 = "FRONTEND_HOST=";
+  private static final String ARG_PARAM_3 = "CHANNEL_ID=";
+  private static final String ARG_PARAM_4 = "ARCHIVE_PLAYLIST_ID=";
 
   private static String frontendUrl = "";
 
@@ -113,25 +114,47 @@ public class Application {
       logger.info(s);
     }
 
-    if (args.length != 2
-        || args[0].startsWith(ARG_PARAM) == false
-        || args[1].startsWith(ARG_PARAM_2) == false) {
-      logger.error("Run with 'API_KEY=<YOUR_YOUTUBE_API_KEY>' and 'FRONTEND_HOST=<URL OF "
-          + "FRONTEND>' as command line arguments");
-      System.exit(1);
-    } else {
-      logger.info("Configuration is correct");
-    }
-
-    String youTubeApiKeyCSV = args[0].substring(ARG_PARAM.length());
     frontendUrl = args[1].substring(ARG_PARAM_2.length());
 
-    ApiManager.initialize(youTubeApiKeyCSV);
+    String youtubeApiKey = args[0].substring(ARG_PARAM.length());
+    String youtubeChannelId = args[2].substring(ARG_PARAM_2.length());
+
+    ApiManager.initialize(youtubeApiKey, youtubeChannelId);
 
     // create the radio player
     radioPlayer = new RadioPlayer();
 
     SpringApplication.run(Application.class, args);
+  }
+
+  private static void validateCommandLineParameters(String[] args) {
+
+    boolean isValid = args.length == 3 || args.length == 4;
+
+    if (isValid) {
+      isValid = args[0].startsWith(ARG_PARAM)
+          && args[1].startsWith(ARG_PARAM_2)
+          && args[2].startsWith(ARG_PARAM_3);
+    }
+
+    if (isValid) {
+      if (args.length == 4) {
+        if (args[3].startsWith(ARG_PARAM_4) == false) {
+          isValid = false;
+        }
+      }
+    }
+
+    if (isValid) {
+      logger.info("Configuration is correct");
+    } else {
+      logger.error("Run with"
+          + "API_KEY=<YOUR_YOUTUBE_API_KEY>,"
+          + "FRONTEND_HOST=<URL OF FRONTEND>,"
+          + "CHANNEL=<YOUR_CHANNEL_ID>,"
+          + "ARCHIVE_PLAYLIST_ID=<YOUR_CHANNEL_ID>'");
+      System.exit(1);
+    }
   }
 
 }

@@ -31,7 +31,7 @@ public class YouTubeService {
 
   private static final Logger logger = LoggerFactory.getLogger(YouTubeService.class);
 
-  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
+  //public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UCEhyiFmy5c6MrTY1iLz2bAQ";
 //  public static final String EFFERALGANG_RADIO_CHANNEL_ID = "UC5Z2eMviso2vnK9iHnmJO8w"; //test
 
   private static final List<String> blacklistVideoIds = new ArrayList<>();
@@ -64,7 +64,7 @@ public class YouTubeService {
         .list("id");
     SearchListResponse response = request
         .setMaxResults(50L)
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setChannelId(ApiManager.getChannelId())
         .setType("video")
         .setEventType("live")
         .execute();
@@ -79,7 +79,7 @@ public class YouTubeService {
         .list("id");
     response = request
         .setMaxResults(50L)
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setChannelId(ApiManager.getChannelId())
         .setType("video")
         .setEventType("upcoming")
         .execute();
@@ -97,15 +97,12 @@ public class YouTubeService {
    * <p>
    * EXECUTED: once an hour
    * COST: 1
-   * <p>
    * -- and --
    * EXECUTED: 37 times an hour (ideally as much as possible)
    * COST: 1
-   * <p>
    * -- and --
    * EXECUTED: 1-2 times on track id call (if
    * COST: 1
-   * <p>
    * TOTAL COST 38-40 an hour.
    * </p>
    *
@@ -197,7 +194,7 @@ public class YouTubeService {
         .list("id")
         .setMaxResults(50L)
         .setPart("id")
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setChannelId(ApiManager.getChannelId())
         .setType("video")
         .setEventType("completed");
 
@@ -276,7 +273,7 @@ public class YouTubeService {
     SearchListResponse response = request
         .setMaxResults(5L)
         .setOrder("date")
-        .setChannelId(EFFERALGANG_RADIO_CHANNEL_ID)
+        .setChannelId(ApiManager.getChannelId())
         .setType("video")
         .setEventType("upcoming")
         .execute();

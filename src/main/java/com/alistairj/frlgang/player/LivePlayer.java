@@ -1,10 +1,10 @@
 package com.alistairj.frlgang.player;
 
-import static com.alistairj.frlgang.YouTubeService.EFFERALGANG_RADIO_CHANNEL_ID;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.isUpcomingVideoPending;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.printUpcomingShows;
 
+import com.alistairj.frlgang.ApiManager;
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
@@ -224,7 +224,7 @@ public class LivePlayer {
 
     Video v = videos.get(0);
 
-    if (v.getSnippet().getChannelId().equals(EFFERALGANG_RADIO_CHANNEL_ID) == false) {
+    if (v.getSnippet().getChannelId().equals(ApiManager.getChannelId()) == false) {
       throw new IOException("I can't find " + videoId);
     }
 
