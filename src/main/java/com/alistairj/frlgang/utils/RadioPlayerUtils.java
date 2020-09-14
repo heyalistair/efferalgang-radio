@@ -28,7 +28,7 @@ public class RadioPlayerUtils {
   private static final String DEFAULT_IMG =
       "https://img.discogs.com/oAOHL8Zan84rK6JiRUs60breU68=/fit-in/600x601/filters:strip_icc():format(jpeg):mode_rgb():quality(90)/discogs-images/R-3471433-1331680516.jpeg.jpg";
 
-  private static final int UPCOMING_START_BEFORE_MINUTES = 5;
+  private static final int UPCOMING_START_BEFORE_MINUTES = 2;
 
   private static final int UPCOMING_END_AFTER_MINUTES = 10;
 
