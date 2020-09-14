@@ -265,6 +265,7 @@ public class YouTubeService {
       List<String> videoIds = new ArrayList<>();
       for (PlaylistItem item : response.getItems()) {
         videoIds.add(item.getContentDetails().getVideoId());
+        logger.debug("id: {} title: {}", item.getId(), item.getSnippet().getTitle());
       }
 
       videoIdBatches.add(videoIds);
@@ -287,15 +288,18 @@ public class YouTubeService {
 
       for (Video v : videoDetails) {
 
-        DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
+        if (v.getLiveStreamingDetails() != null) {
 
-        if (dt != null) {
-          ZonedDateTime now = ZonedDateTime.now();
-          ZonedDateTime scheduled = getDateTime(dt);
+          DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
 
-          if (now.isBefore(scheduled)) {
-            logger.debug("FOUND UPCOMING PREMIERE VIDEO: {} ", v.getSnippet().getTitle());
-            upcomingPremiereIds.add(v.getId());
+          if (dt != null) {
+            ZonedDateTime now = ZonedDateTime.now();
+            ZonedDateTime scheduled = getDateTime(dt);
+
+            if (now.isBefore(scheduled)) {
+              logger.debug("FOUND UPCOMING PREMIERE VIDEO: {} ", v.getSnippet().getTitle());
+              upcomingPremiereIds.add(v.getId());
+            }
           }
         }
       }
