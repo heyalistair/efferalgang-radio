@@ -33,7 +33,10 @@ public class Application {
   private static final String ARG_PARAM_0 = "API_KEY=";
   private static final String ARG_PARAM_1 = "FRONTEND_HOST=";
   private static final String ARG_PARAM_2 = "CHANNEL_ID=";
-  private static final String ARG_PARAM_3 = "ARCHIVE_PLAYLIST_ID=";
+  private static final String ARG_PARAM_3 = "CLIENT_ID=";
+  private static final String ARG_PARAM_4 = "CLIENT_SECRET=";
+  private static final String ARG_PARAM_5 = "REFRESH_TOKEN=";
+  private static final String ARG_PARAM_6 = "ARCHIVE_PLAYLIST_ID=";
 
   private static String frontendUrl = "";
 
@@ -89,7 +92,7 @@ public class Application {
   /**
    * Timed to help with upcoming.
    */
-  @Scheduled(cron = "0 59 * ? * *")
+  @Scheduled(cron = "5,35 * * ? * *")
   public void fetchUpcomingAndLiveShowIds() {
     radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
@@ -113,11 +116,16 @@ public class Application {
     String youtubeApiKey = args[0].substring(ARG_PARAM_0.length());
     String youtubeChannelId = args[2].substring(ARG_PARAM_2.length());
 
-    if (args.length == 4) {
-      String archivePlaylistId = args[3].substring(ARG_PARAM_3.length());
-      ApiManager.initialize(youtubeApiKey, youtubeChannelId, archivePlaylistId);
+    String clientId = args[3].substring(ARG_PARAM_3.length());
+    String clientSecret = args[4].substring(ARG_PARAM_4.length());
+    String refreshToken = args[5].substring(ARG_PARAM_5.length());
+
+    // handle optional playlist archive
+    if (args.length == 7) {
+      String archivePlaylistId = args[6].substring(ARG_PARAM_6.length());
+      ApiManager.initialize(youtubeApiKey, youtubeChannelId, clientId, clientSecret, refreshToken, archivePlaylistId);
     } else {
-      ApiManager.initialize(youtubeApiKey, youtubeChannelId);
+      ApiManager.initialize(youtubeApiKey, youtubeChannelId, clientId, clientSecret, refreshToken);
     }
 
     // create the radio player
@@ -131,16 +139,19 @@ public class Application {
       logger.info("Command line args are: {}", s);
     }
 
-    boolean isValid = args.length == 3 || args.length == 4;
+    boolean isValid = args.length == 6 || args.length == 7;
 
     if (isValid) {
       isValid = args[0].startsWith(ARG_PARAM_0)
           && args[1].startsWith(ARG_PARAM_1)
-          && args[2].startsWith(ARG_PARAM_2);
+          && args[2].startsWith(ARG_PARAM_2)
+          && args[3].startsWith(ARG_PARAM_3)
+          && args[4].startsWith(ARG_PARAM_4)
+          && args[5].startsWith(ARG_PARAM_5);
     }
 
-    if (isValid && args.length == 4) {
-      if (args[3].startsWith(ARG_PARAM_3) == false) {
+    if (isValid && args.length == 7) {
+      if (args[6].startsWith(ARG_PARAM_6) == false) {
         isValid = false;
       }
     }

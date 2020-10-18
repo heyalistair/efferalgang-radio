@@ -7,6 +7,7 @@ import static com.alistairj.frlgang.utils.RadioPlayerUtils.isVideoLive;
 import static com.alistairj.frlgang.utils.RadioPlayerUtils.printUpcomingShows;
 
 import com.alistairj.frlgang.ApiManager;
+import com.alistairj.frlgang.AuthYouTubeService;
 import com.alistairj.frlgang.YouTubeService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.model.Video;
@@ -61,7 +62,7 @@ public class LivePlayer {
   public void fetchUpcomingAndLiveShowIds() {
     try {
       logger.trace("Getting information about relevant ids");
-      Set<String> unverifiedVideoIds = YouTubeService.getCurrentAndUpcomingLiveShowIds();
+      Set<String> unverifiedVideoIds = AuthYouTubeService.getCurrentAndUpcomingLiveShowIds();
       fetchBroadcastStatusOfRelevantIds(unverifiedVideoIds);
     } catch (IOException e) {
       logger.error("Unable to get search for upcoming and live shows!", e);
@@ -82,6 +83,8 @@ public class LivePlayer {
     try {
       logger.info("Getting information for {} ids: {}", unverifiedVideoIds.size(),
           String.join(",", unverifiedVideoIds));
+
+      //List<Video> videos = YouTubeService.getUpcomingShowDetails(unverifiedVideoIds);
 
       List<Video> videos = YouTubeService.getUpcomingShowDetails(unverifiedVideoIds);
 
@@ -109,6 +112,16 @@ public class LivePlayer {
       }
 
       upcomers.sort((o1, o2) -> {
+
+        if (o1.getLiveStreamingDetails() == null
+            || o1.getLiveStreamingDetails().getScheduledStartTime() == null) {
+          return -1;
+        }
+
+        if (o2.getLiveStreamingDetails() == null
+            || o2.getLiveStreamingDetails().getScheduledStartTime() == null) {
+          return 1;
+        }
         DateTime d1 = o1.getLiveStreamingDetails().getScheduledStartTime();
         DateTime d2 = o2.getLiveStreamingDetails().getScheduledStartTime();
         return (int) (d1.getValue() - d2.getValue());
@@ -144,7 +157,7 @@ public class LivePlayer {
   public void fetchLiveShowStatus() {
     Set<String> currentLiveIds;
     try {
-      currentLiveIds = YouTubeService.getCurrentAndUpcomingLiveShowIds();
+      currentLiveIds = AuthYouTubeService.getCurrentAndUpcomingLiveShowIds();
     } catch (IOException e) {
       logger.error("Unable to get current live shows!", e);
       return;

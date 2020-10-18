@@ -42,27 +42,27 @@ public class RadioPlayerUtils {
    * @param upcomers The upcoming videos to print.
    */
   public static void printUpcomingShows(List<Video> upcomers) {
-    Video upcoming;
     if (upcomers.size() > 0) {
-      upcoming = upcomers.get(0);
-      logger.debug("1st upcoming video scheduled at:{}, id:{}, name:{}",
-          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
-          upcoming.getId(), upcoming.getSnippet().getTitle());
+      printUpcomingShow(upcomers.get(0), "1st");
     }
-
     if (upcomers.size() > 1) {
-      upcoming = upcomers.get(1);
-      logger.debug("2nd upcoming video scheduled at:{}, id:{}, name:{}",
-          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
-          upcoming.getId(), upcoming.getSnippet().getTitle());
+      printUpcomingShow(upcomers.get(1), "2nd");
     }
-
     if (upcomers.size() > 2) {
-      upcoming = upcomers.get(2);
-      logger.debug("3rd upcoming video scheduled at:{}, id:{}, name:{}",
-          upcoming.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339(),
-          upcoming.getId(), upcoming.getSnippet().getTitle());
+      printUpcomingShow(upcomers.get(2), "3rd");
     }
+  }
+
+  private static void printUpcomingShow(Video video, String ordinal) {
+    logger.debug("{} upcoming video scheduled at:{}, id:{}, name:{}", ordinal,
+        showHasStartTime(video)
+            ? video.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339() : "null",
+        video.getId(), video.getSnippet().getTitle());
+  }
+
+  private static boolean showHasStartTime(Video video) {
+    return video.getLiveStreamingDetails() != null
+        && video.getLiveStreamingDetails().getScheduledStartTime() != null;
   }
 
   public static void writeVideoInfo(JsonGenerator g, Video v) throws IOException {
@@ -156,7 +156,8 @@ public class RadioPlayerUtils {
         return true;
       }
 
-      logger.debug("Checking premiere video id:{} to see if it has ended", v.getSnippet().getTitle());
+      logger
+          .debug("Checking premiere video id:{} to see if it has ended", v.getSnippet().getTitle());
       DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
       long duration = Duration.parse(v.getContentDetails().getDuration()).getSeconds();
 
@@ -186,7 +187,12 @@ public class RadioPlayerUtils {
   }
 
   public static ZonedDateTime getDateTime(DateTime dt) {
-    Instant instant = Instant.ofEpochSecond(dt.getValue() / 1000);
+    Instant instant;
+    if (dt == null) {
+      instant = Instant.now();
+    } else {
+      instant = Instant.ofEpochSecond(dt.getValue() / 1000);
+    }
     return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
   }
 
