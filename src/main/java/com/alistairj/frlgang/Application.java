@@ -89,17 +89,9 @@ public class Application {
     return fv;
   }
 
-  /**
-   * Timed to help with upcoming.
-   */
-  @Scheduled(cron = "5,35 * * ? * *")
-  public void fetchUpcomingAndLiveShowIds() {
-    radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
-  }
-
   @Scheduled(cron = "15,45 * * ? * *")
-  public void fetchBroadcastStatusOfRelevantIds() {
-    radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
+  public void fetchStatusOfBroadcasts() {
+    radioPlayer.getLivePlayer().fetchStatusOfBroadcasts();
   }
 
   /**

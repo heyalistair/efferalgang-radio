@@ -2,6 +2,7 @@ package com.alistairj.frlgang.utils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.api.client.util.DateTime;
+import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.Video;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -41,7 +42,7 @@ public class RadioPlayerUtils {
    *
    * @param upcomers The upcoming videos to print.
    */
-  public static void printUpcomingShows(List<Video> upcomers) {
+  public static void printUpcomingShows(List<LiveBroadcast> upcomers) {
     if (upcomers.size() > 0) {
       printUpcomingShow(upcomers.get(0), "1st");
     }
@@ -53,16 +54,16 @@ public class RadioPlayerUtils {
     }
   }
 
-  private static void printUpcomingShow(Video video, String ordinal) {
+  private static void printUpcomingShow(LiveBroadcast video, String ordinal) {
     logger.debug("{} upcoming video scheduled at:{}, id:{}, name:{}", ordinal,
         showHasStartTime(video)
-            ? video.getLiveStreamingDetails().getScheduledStartTime().toStringRfc3339() : "null",
+            ? video.getSnippet().getScheduledStartTime().toStringRfc3339() : "null",
         video.getId(), video.getSnippet().getTitle());
   }
 
-  private static boolean showHasStartTime(Video video) {
-    return video.getLiveStreamingDetails() != null
-        && video.getLiveStreamingDetails().getScheduledStartTime() != null;
+  private static boolean showHasStartTime(LiveBroadcast video) {
+    return video.getSnippet() != null
+        && video.getSnippet().getScheduledStartTime() != null;
   }
 
   public static void writeVideoInfo(JsonGenerator g, Video v) throws IOException {
@@ -91,6 +92,32 @@ public class RadioPlayerUtils {
     g.writeEndObject();
   }
 
+  public static void writeVideoInfo(JsonGenerator g, LiveBroadcast v) throws IOException {
+    g.writeStringField("id", v.getId());
+    g.writeStringField("title", v.getSnippet().getTitle());
+    try {
+      g.writeStringField("scheduled_at",
+          v.getSnippet().getScheduledStartTime().toStringRfc3339());
+    } catch (NullPointerException e) {
+      g.writeStringField("scheduled_at", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+          .format(new Date()));
+    }
+
+    g.writeObjectFieldStart("thumbnail");
+
+    try {
+      g.writeStringField("url", v.getSnippet().getThumbnails().getStandard().getUrl());
+      g.writeNumberField("w", v.getSnippet().getThumbnails().getStandard().getWidth());
+      g.writeNumberField("h", v.getSnippet().getThumbnails().getStandard().getHeight());
+
+    } catch (NullPointerException e) {
+      g.writeStringField("url", DEFAULT_IMG);
+      g.writeNumberField("w", 600);
+      g.writeNumberField("h", 600);
+    }
+    g.writeEndObject();
+  }
+
   /**
    * Examines the scheduled times in the list to see if there is a video that is starting
    * imminently.
@@ -98,13 +125,13 @@ public class RadioPlayerUtils {
    * @param upcomingList The list of videos sorted by scheduled time.
    * @return video Upcoming video, or null if there is none.
    */
-  public static Video isUpcomingVideoPending(List<Video> upcomingList) {
+  public static LiveBroadcast isUpcomingVideoPending(List<LiveBroadcast> upcomingList) {
     if (upcomingList == null) {
       return null;
     }
 
-    for (Video v : upcomingList) {
-      DateTime dt = v.getLiveStreamingDetails().getScheduledStartTime();
+    for (LiveBroadcast v : upcomingList) {
+      DateTime dt = v.getSnippet().getScheduledStartTime();
       ZonedDateTime scheduled = getDateTime(dt);
       ZonedDateTime now = ZonedDateTime.now();
       ZonedDateTime fiveMinutesBefore = scheduled.minusMinutes(UPCOMING_START_BEFORE_MINUTES);

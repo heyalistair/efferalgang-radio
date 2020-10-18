@@ -7,6 +7,7 @@ import com.alistairj.frlgang.player.archive.ArchivedVideo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.Video;
 import java.io.IOException;
 import java.util.List;
@@ -61,7 +62,7 @@ public class RadioPlayerSerializer extends StdSerializer<RadioPlayer> {
       LivePlayer lp = rp.getLivePlayer();
       g.writeObjectFieldStart("live_player");
 
-      Video v = lp.getCurrentLiveVideo();
+      LiveBroadcast v = lp.getCurrentLiveVideo();
       if (v == null) {
         g.writeNullField("current");
       } else {
@@ -70,9 +71,9 @@ public class RadioPlayerSerializer extends StdSerializer<RadioPlayer> {
         g.writeEndObject();
       } // end live_player current
 
-      List<Video> vs = lp.getUpcomingVideos();
+      List<LiveBroadcast> vs = lp.getUpcomingVideos();
       g.writeArrayFieldStart("upcoming");
-      for (Video video : vs) {
+      for (LiveBroadcast video : vs) {
         g.writeStartObject();
         writeVideoInfo(g, video);
         g.writeEndObject();
