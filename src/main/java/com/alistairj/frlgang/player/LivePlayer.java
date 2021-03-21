@@ -1,29 +1,19 @@
 package com.alistairj.frlgang.player;
 
-import static com.alistairj.frlgang.utils.RadioPlayerUtils.hasLiveVideoEnded;
-import static com.alistairj.frlgang.utils.RadioPlayerUtils.isFirstVideoScheduledAfterSecond;
-import static com.alistairj.frlgang.utils.RadioPlayerUtils.isUpcomingVideoPending;
-import static com.alistairj.frlgang.utils.RadioPlayerUtils.isVideoLive;
-import static com.alistairj.frlgang.utils.RadioPlayerUtils.printUpcomingShows;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-
-import com.alistairj.frlgang.ApiManager;
-import com.alistairj.frlgang.YouTubeService;
-import com.google.api.client.util.DateTime;
-import com.google.api.services.youtube.model.Video;
-import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * On initialization, getUpcomingShows should always be called be called before getLiveShows.
@@ -36,24 +26,42 @@ public class LivePlayer {
 
   private static final String URL_STATS = "http://167.172.160.213/stat";
 
-  private boolean isLive;
+  OkHttpClient client = new OkHttpClient();
 
+  private DocumentBuilder builder;
+
+  private final RadioPlayer rp;
   /**
    * Build a new LivePlayer.
    */
-  public LivePlayer() {
+  public LivePlayer(RadioPlayer rp) {
+    this.rp = rp;
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    try {
+      this.builder = factory.newDocumentBuilder();
+    } catch (ParserConfigurationException e) {
+      e.printStackTrace();
+    }
   }
 
   public void fetchBroadcastStatus() {
     try {
       String xml = this.getXml();
-      logger.info(xml);
-    } catch (IOException e) {
+      Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+      doc.getDocumentElement().normalize();
+
+      // if the XML has a stream element, there is a live stream
+      NodeList nl = doc.getElementsByTagName("stream");
+      if (nl.getLength() > 0) {
+        rp.setStatusLive();
+      } else {
+        rp.setStatusArchivedPlay();
+      }
+
+    } catch (IOException | SAXException e) {
       logger.error("Cannot fetch XML");
     }
   }
-
-  OkHttpClient client = new OkHttpClient();
 
   private String getXml() throws IOException {
     Request request = new Request.Builder()

@@ -28,7 +28,7 @@ public class RadioPlayer {
   public RadioPlayer() {
     archivePlayer = new ArchivePlayer();
     archivePlayer.play();
-    livePlayer = new LivePlayer();
+    livePlayer = new LivePlayer(this);
   }
 
   public synchronized BroadcastStatus getStatus() {
