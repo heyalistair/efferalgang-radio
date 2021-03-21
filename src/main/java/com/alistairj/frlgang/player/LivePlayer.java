@@ -24,7 +24,7 @@ public class LivePlayer {
 
   private static final Logger logger = LoggerFactory.getLogger(LivePlayer.class);
 
-  private static final String URL_STATS = "http://167.172.160.213/stat";
+  private static final String URL_STATS = "http://localhost/stat";
 
   OkHttpClient client = new OkHttpClient();
 
