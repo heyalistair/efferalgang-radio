@@ -58,27 +58,27 @@ public class RadioPlayerSerializer extends StdSerializer<RadioPlayer> {
 
       g.writeEndObject(); // end archive_player
 
-      LivePlayer lp = rp.getLivePlayer();
-      g.writeObjectFieldStart("live_player");
-
-      Video v = lp.getCurrentLiveVideo();
-      if (v == null) {
-        g.writeNullField("current");
-      } else {
-        g.writeObjectFieldStart("current");
-        writeVideoInfo(g, v);
-        g.writeEndObject();
-      } // end live_player current
-
-      List<Video> vs = lp.getUpcomingVideos();
-      g.writeArrayFieldStart("upcoming");
-      for (Video video : vs) {
-        g.writeStartObject();
-        writeVideoInfo(g, video);
-        g.writeEndObject();
-      }
-      g.writeEndArray(); // end live_player upcoming
-      g.writeEndObject(); // end live_player
+//      LivePlayer lp = rp.getLivePlayer();
+//      g.writeObjectFieldStart("live_player");
+//
+//      Video v = lp.getCurrentLiveVideo();
+//      if (v == null) {
+//        g.writeNullField("current");
+//      } else {
+//        g.writeObjectFieldStart("current");
+//        writeVideoInfo(g, v);
+//        g.writeEndObject();
+//      } // end live_player current
+//
+//      List<Video> vs = lp.getUpcomingVideos();
+//      g.writeArrayFieldStart("upcoming");
+//      for (Video video : vs) {
+//        g.writeStartObject();
+//        writeVideoInfo(g, video);
+//        g.writeEndObject();
+//      }
+//      g.writeEndArray(); // end live_player upcoming
+//      g.writeEndObject(); // end live_player
       g.writeEndObject();
 
     } catch (Exception e) {

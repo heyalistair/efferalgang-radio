@@ -64,39 +64,19 @@ public class Application {
     return radioPlayer.getArchivePlayer();
   }
 
-  @CrossOrigin
-  @RequestMapping(value = "/track", method = POST)
-  @ResponseBody
-  public FoundVideo trackVideo(@RequestParam("video_id") String videoIdOrUrl) throws IOException {
-
-    logger.info("Encoded video_id_or_url:{}", videoIdOrUrl);
-
-    String videoIdOrUrlDecoded = URLDecoder.decode(videoIdOrUrl, "UTF-8");
-
-    String videoId = RadioPlayerUtils.parseVideoId(videoIdOrUrlDecoded);
-
-    logger.info("Checking video_id:{}", videoId);
-    if (videoId.isEmpty()) {
-      throw new IOException("I don't even understand this show id");
-    }
-
-    FoundVideo fv = radioPlayer.getLivePlayer().checkVideoId(videoId);
-
-    return fv;
-  }
-
   /**
    * Timed to help with upcoming.
    */
   @Scheduled(cron = "0 59 * ? * *")
   public void fetchUpcomingAndLiveShowIds() {
-    radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
+    radioPlayer.getLivePlayer().fetchBroadcastStatus();
   }
 
 //  @Scheduled(cron = "15,45 * * ? * *")
   @Scheduled(fixedDelay = 1000)
   public void fetchBroadcastStatusOfRelevantIds() {
-    radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
+    logger.debug("asdfasdf");
+    radioPlayer.getLivePlayer().fetchBroadcastStatus();
   }
 
   /**
