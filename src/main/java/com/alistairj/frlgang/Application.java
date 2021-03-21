@@ -32,8 +32,7 @@ public class Application {
 
   private static final String ARG_PARAM_0 = "API_KEY=";
   private static final String ARG_PARAM_1 = "FRONTEND_HOST=";
-  private static final String ARG_PARAM_2 = "CHANNEL_ID=";
-  private static final String ARG_PARAM_3 = "ARCHIVE_PLAYLIST_ID=";
+  private static final String ARG_PARAM_2 = "ARCHIVE_PLAYLIST_ID=";
 
   private static String frontendUrl = "";
 
@@ -94,7 +93,8 @@ public class Application {
     radioPlayer.getLivePlayer().fetchUpcomingAndLiveShowIds();
   }
 
-  @Scheduled(cron = "15,45 * * ? * *")
+//  @Scheduled(cron = "15,45 * * ? * *")
+  @Scheduled(fixedDelay = 1000)
   public void fetchBroadcastStatusOfRelevantIds() {
     radioPlayer.getLivePlayer().fetchBroadcastStatusOfRelevantIds();
   }
@@ -111,14 +111,9 @@ public class Application {
     frontendUrl = args[1].substring(ARG_PARAM_1.length());
 
     String youtubeApiKey = args[0].substring(ARG_PARAM_0.length());
-    String youtubeChannelId = args[2].substring(ARG_PARAM_2.length());
+    String playlistId = args[2].substring(ARG_PARAM_2.length());
 
-    if (args.length == 4) {
-      String archivePlaylistId = args[3].substring(ARG_PARAM_3.length());
-      ApiManager.initialize(youtubeApiKey, youtubeChannelId, archivePlaylistId);
-    } else {
-      ApiManager.initialize(youtubeApiKey, youtubeChannelId);
-    }
+    ApiManager.initialize(youtubeApiKey, playlistId);
 
     // create the radio player
     radioPlayer = new RadioPlayer();
@@ -139,19 +134,12 @@ public class Application {
           && args[2].startsWith(ARG_PARAM_2);
     }
 
-    if (isValid && args.length == 4) {
-      if (args[3].startsWith(ARG_PARAM_3) == false) {
-        isValid = false;
-      }
-    }
-
     if (isValid) {
       logger.info("Configuration is correct");
     } else {
       logger.error("Run with"
           + "API_KEY=<YOUR_YOUTUBE_API_KEY>,"
           + "FRONTEND_HOST=<URL OF FRONTEND>,"
-          + "CHANNEL_ID=<YOUR_CHANNEL_ID>,"
           + "ARCHIVE_PLAYLIST_ID=<YOUR_CHANNEL_ID>'");
       System.exit(1);
     }

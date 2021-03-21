@@ -45,7 +45,7 @@ public class ApiManager {
    *
    * @param key API key for the YouTube key
    */
-  public static void initialize(String key, String channelId, String archivePlaylistId)
+  public static void initialize(String key, String archivePlaylistId)
       throws GeneralSecurityException, IOException {
 
     if (archivePlaylistId == null) {
@@ -57,24 +57,7 @@ public class ApiManager {
     ApiManager.archivePlaylistId = archivePlaylistId;
     ApiManager.isArchivePlaylistActive = true;
 
-    ApiManager.initialize(key, channelId);
-
-  }
-
-  /**
-   * Initializes API Manager.
-   *
-   * @param key API key for the YouTube key
-   * @see #initialize(String, String, String)
-   */
-  public static void initialize(String key, String channelId)
-      throws GeneralSecurityException, IOException {
-
-    if (key == null || channelId == null) {
-      throw new IllegalArgumentException();
-    }
-
-    logger.debug("Initializing API service with key '{}' and channelId '{}'", key, channelId);
+    logger.debug("Initializing API service with key '{}'", key.substring(0, 6));
 
     final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
@@ -82,12 +65,6 @@ public class ApiManager {
         .setApplicationName(APPLICATION_NAME)
         .setYouTubeRequestInitializer(new YouTubeRequestInitializer(key))
         .build();
-
-    ApiManager.channelId = channelId;
-
-    // actually use the channel id to get the upload playlist id
-    uploadPlaylistId = YouTubeService.getUploadPlaylistId();
-    logger.info("Found upload playlist id: {}", uploadPlaylistId);
   }
 
   /**
